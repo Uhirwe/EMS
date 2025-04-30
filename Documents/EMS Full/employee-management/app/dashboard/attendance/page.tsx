@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { CalendarIcon, ChevronDown, Download, Edit, MoreHorizontal, Plus, Search, Trash } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -21,121 +22,133 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
-
-// Sample attendance data
-const attendanceRecords = [
-  {
-    id: 1,
-    employeeId: 1,
-    employeeName: "John Doe",
-    department: "Engineering",
-    date: "2023-05-01",
-    checkIn: "09:00",
-    checkOut: "17:30",
-    status: "Present",
-  },
-  {
-    id: 2,
-    employeeId: 2,
-    employeeName: "Jane Smith",
-    department: "Marketing",
-    date: "2023-05-01",
-    checkIn: "08:45",
-    checkOut: "17:15",
-    status: "Present",
-  },
-  {
-    id: 3,
-    employeeId: 3,
-    employeeName: "Robert Johnson",
-    department: "Finance",
-    date: "2023-05-01",
-    checkIn: "09:15",
-    checkOut: "18:00",
-    status: "Present",
-  },
-  {
-    id: 4,
-    employeeId: 4,
-    employeeName: "Emily Davis",
-    department: "Human Resources",
-    date: "2023-05-01",
-    checkIn: "",
-    checkOut: "",
-    status: "Absent",
-  },
-  {
-    id: 5,
-    employeeId: 5,
-    employeeName: "Michael Chen",
-    department: "Engineering",
-    date: "2023-05-01",
-    checkIn: "09:30",
-    checkOut: "16:45",
-    status: "Present",
-  },
-  {
-    id: 6,
-    employeeId: 6,
-    employeeName: "Sarah Johnson",
-    department: "Sales",
-    date: "2023-05-01",
-    checkIn: "08:30",
-    checkOut: "17:00",
-    status: "Present",
-  },
-  {
-    id: 7,
-    employeeId: 7,
-    employeeName: "David Wilson",
-    department: "Engineering",
-    date: "2023-05-01",
-    checkIn: "",
-    checkOut: "",
-    status: "On Leave",
-  },
-]
+import { attendanceApi, employeeApi } from "@/lib/api/employee"
+import { Attendance, Employee } from "@/types/employee"
 
 export default function AttendancePage() {
+  const router = useRouter()
+  const [attendances, setAttendances] = useState<Attendance[]>([])
+  const [employees, setEmployees] = useState<Employee[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [date, setDate] = useState<Date | undefined>(new Date())
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [selectedRecord, setSelectedRecord] = useState<any>(null)
-  const [newRecord, setNewRecord] = useState({
-    employeeName: "",
-    department: "",
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedAttendance, setSelectedAttendance] = useState<Attendance | null>(null)
+  const [newAttendance, setNewAttendance] = useState<{
+    employee: Employee;
+    date: string;
+    status: 'PRESENT' | 'ABSENT' | 'LATE' | 'LEAVE';
+  }>({
+    employee: {} as Employee,
     date: format(new Date(), "yyyy-MM-dd"),
-    checkIn: "",
-    checkOut: "",
-    status: "Present",
+    status: 'PRESENT',
   })
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const filteredRecords = attendanceRecords.filter(
-    (record) =>
-      record.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.status.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  useEffect(() => {
+    loadData()
+  }, [])
 
-  const handleAddRecord = () => {
-    // In a real app, this would add the record to the database
-    console.log("Adding attendance record:", newRecord)
-    setIsAddDialogOpen(false)
-    setNewRecord({
-      employeeName: "",
-      department: "",
-      date: format(new Date(), "yyyy-MM-dd"),
-      checkIn: "",
-      checkOut: "",
-      status: "Present",
-    })
+  const loadData = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const [attendanceData, employeeData] = await Promise.all([
+        attendanceApi.getAllAttendances(),
+        employeeApi.getAllEmployees()
+      ])
+      setAttendances(attendanceData)
+      setEmployees(employeeData)
+    } catch (error: any) {
+      console.error("Failed to load data:", error)
+      if (error.message?.includes("401")) {
+        setError("Authentication required. Please log in.")
+        router.push("/auth/login")
+      } else {
+        setError("Failed to load data. Please try again later.")
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleEditRecord = () => {
-    // In a real app, this would update the record in the database
-    console.log("Editing attendance record:", selectedRecord)
-    setIsEditDialogOpen(false)
+  const filteredAttendances = attendances.filter(
+    (attendance) =>
+      `${attendance.employee.firstName} ${attendance.employee.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      attendance.date.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      attendance.status.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
+
+  const handleAddAttendance = async () => {
+    try {
+      if (!newAttendance.employee.id) {
+        setError("Employee is required")
+        return
+      }
+      if (!newAttendance.date) {
+        setError("Date is required")
+        return
+      }
+
+      await attendanceApi.createAttendance({
+        employee: newAttendance.employee,
+        date: newAttendance.date,
+        status: newAttendance.status
+      })
+
+      const updatedAttendances = await attendanceApi.getAllAttendances()
+      setAttendances(updatedAttendances)
+
+      setIsAddDialogOpen(false)
+      setNewAttendance({
+        employee: {} as Employee,
+        date: format(new Date(), "yyyy-MM-dd"),
+        status: 'PRESENT',
+      })
+    } catch (error: any) {
+      console.error("Failed to add attendance:", error)
+      setError(error.message || "Failed to add attendance. Please try again later.")
+    }
+  }
+
+  const handleEditAttendance = async () => {
+    if (!selectedAttendance) return
+    try {
+      if (!selectedAttendance.employee.id) {
+        setError("Employee is required")
+        return
+      }
+      if (!selectedAttendance.date) {
+        setError("Date is required")
+        return
+      }
+
+      await attendanceApi.updateAttendance(selectedAttendance.id, selectedAttendance)
+      const updatedAttendances = await attendanceApi.getAllAttendances()
+      setAttendances(updatedAttendances)
+      setIsEditDialogOpen(false)
+      setSelectedAttendance(null)
+    } catch (error: any) {
+      console.error("Failed to update attendance:", error)
+      setError(error.message || "Failed to update attendance. Please try again later.")
+    }
+  }
+
+  const handleDeleteAttendance = async () => {
+    if (!selectedAttendance) return
+
+    try {
+      await attendanceApi.deleteAttendance(selectedAttendance.id)
+      const updatedAttendances = await attendanceApi.getAllAttendances()
+      setAttendances(updatedAttendances)
+      setIsDeleteDialogOpen(false)
+      setSelectedAttendance(null)
+    } catch (error: any) {
+      console.error("Failed to delete attendance:", error)
+      setError(error.message || "Failed to delete attendance. Please try again later.")
+    }
   }
 
   return (
@@ -174,98 +187,61 @@ export default function AttendancePage() {
                 <DialogDescription>Add a new attendance record for an employee.</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="employeeName">Employee</Label>
-                    <Select
-                      value={newRecord.employeeName}
-                      onValueChange={(value) => setNewRecord({ ...newRecord, employeeName: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select employee" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="John Doe">John Doe</SelectItem>
-                        <SelectItem value="Jane Smith">Jane Smith</SelectItem>
-                        <SelectItem value="Robert Johnson">Robert Johnson</SelectItem>
-                        <SelectItem value="Emily Davis">Emily Davis</SelectItem>
-                        <SelectItem value="Michael Chen">Michael Chen</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="department">Department</Label>
-                    <Select
-                      value={newRecord.department}
-                      onValueChange={(value) => setNewRecord({ ...newRecord, department: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Engineering">Engineering</SelectItem>
-                        <SelectItem value="Marketing">Marketing</SelectItem>
-                        <SelectItem value="Finance">Finance</SelectItem>
-                        <SelectItem value="Human Resources">Human Resources</SelectItem>
-                        <SelectItem value="Sales">Sales</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="employee">Employee</Label>
+                  <Select
+                    value={newAttendance.employee.id?.toString()}
+                    onValueChange={(value) => {
+                      const employee = employees.find(e => e.id.toString() === value)
+                      if (employee) {
+                        setNewAttendance({ ...newAttendance, employee })
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select employee" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.id.toString()}>
+                          {employee.firstName} {employee.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={newRecord.date}
-                      onChange={(e) => setNewRecord({ ...newRecord, date: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Select
-                      value={newRecord.status}
-                      onValueChange={(value) => setNewRecord({ ...newRecord, status: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Present">Present</SelectItem>
-                        <SelectItem value="Absent">Absent</SelectItem>
-                        <SelectItem value="Late">Late</SelectItem>
-                        <SelectItem value="On Leave">On Leave</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={newAttendance.date}
+                    onChange={(e) => setNewAttendance({ ...newAttendance, date: e.target.value })}
+                  />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="checkIn">Check In</Label>
-                    <Input
-                      id="checkIn"
-                      type="time"
-                      value={newRecord.checkIn}
-                      onChange={(e) => setNewRecord({ ...newRecord, checkIn: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="checkOut">Check Out</Label>
-                    <Input
-                      id="checkOut"
-                      type="time"
-                      value={newRecord.checkOut}
-                      onChange={(e) => setNewRecord({ ...newRecord, checkOut: e.target.value })}
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={newAttendance.status}
+                    onValueChange={(value) => setNewAttendance({ ...newAttendance, status: value as Attendance['status'] })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PRESENT">Present</SelectItem>
+                      <SelectItem value="ABSENT">Absent</SelectItem>
+                      <SelectItem value="LATE">Late</SelectItem>
+                      <SelectItem value="LEAVE">Leave</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleAddRecord}>Add Record</Button>
+                <Button onClick={handleAddAttendance}>Add Record</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -295,127 +271,210 @@ export default function AttendancePage() {
             <DropdownMenuItem>Present</DropdownMenuItem>
             <DropdownMenuItem>Absent</DropdownMenuItem>
             <DropdownMenuItem>Late</DropdownMenuItem>
-            <DropdownMenuItem>On Leave</DropdownMenuItem>
+            <DropdownMenuItem>Leave</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Employee</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Check In</TableHead>
-              <TableHead>Check Out</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredRecords.map((record) => (
-              <TableRow key={record.id}>
-                <TableCell className="font-medium">{record.employeeName}</TableCell>
-                <TableCell>{record.department}</TableCell>
-                <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
-                <TableCell>{record.checkIn || "-"}</TableCell>
-                <TableCell>{record.checkOut || "-"}</TableCell>
-                <TableCell>
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      record.status === "Present"
-                        ? "bg-green-100 text-green-800"
-                        : record.status === "Absent"
-                          ? "bg-red-100 text-red-800"
-                          : record.status === "Late"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    {record.status}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Actions</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                        <DialogTrigger asChild>
-                          <DropdownMenuItem
-                            onSelect={(e) => {
-                              e.preventDefault()
-                              setSelectedRecord(record)
-                            }}
-                          >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Edit Attendance Record</DialogTitle>
-                            <DialogDescription>Update attendance information.</DialogDescription>
-                          </DialogHeader>
-                          {selectedRecord && (
-                            <div className="grid gap-4 py-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-date">Date</Label>
-                                  <Input id="edit-date" type="date" defaultValue={selectedRecord.date} />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-status">Status</Label>
-                                  <Select defaultValue={selectedRecord.status}>
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="Present">Present</SelectItem>
-                                      <SelectItem value="Absent">Absent</SelectItem>
-                                      <SelectItem value="Late">Late</SelectItem>
-                                      <SelectItem value="On Leave">On Leave</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-checkIn">Check In</Label>
-                                  <Input id="edit-checkIn" type="time" defaultValue={selectedRecord.checkIn} />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-checkOut">Check Out</Label>
-                                  <Input id="edit-checkOut" type="time" defaultValue={selectedRecord.checkOut} />
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                              Cancel
-                            </Button>
-                            <Button onClick={handleEditRecord}>Save Changes</Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                      <DropdownMenuItem className="text-red-600">
-                        <Trash className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{error}</span>
+          <button className="absolute top-0 bottom-0 right-0 px-4 py-3" onClick={() => setError(null)}>
+            <span className="sr-only">Dismiss</span>
+            <span className="text-xl">×</span>
+          </button>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Employee</TableHead>
+                <TableHead>Department</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {filteredAttendances.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    {searchTerm ? "No attendances match your search criteria." : "No attendances found. Add some attendances to get started."}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredAttendances.map((attendance) => (
+                  <TableRow key={attendance.id}>
+                    <TableCell className="font-medium">
+                      {attendance.employee.firstName} {attendance.employee.lastName}
+                    </TableCell>
+                    <TableCell>{attendance.employee.department.name}</TableCell>
+                    <TableCell>{new Date(attendance.date).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          attendance.status === "PRESENT"
+                            ? "bg-green-100 text-green-800"
+                            : attendance.status === "ABSENT"
+                              ? "bg-red-100 text-red-800"
+                              : attendance.status === "LATE"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {attendance.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Actions</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                            <DialogTrigger asChild>
+                              <DropdownMenuItem
+                                onSelect={(e) => {
+                                  e.preventDefault()
+                                  setSelectedAttendance(attendance)
+                                }}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Edit Attendance Record</DialogTitle>
+                                <DialogDescription>Update attendance information.</DialogDescription>
+                              </DialogHeader>
+                              {selectedAttendance && (
+                                <div className="grid gap-4 py-4">
+                                  <div className="space-y-2">
+                                    <Label htmlFor="edit-employee">Employee</Label>
+                                    <Select
+                                      value={selectedAttendance.employee.id.toString()}
+                                      onValueChange={(value) => {
+                                        const employee = employees.find(e => e.id.toString() === value)
+                                        if (employee) {
+                                          setSelectedAttendance({ ...selectedAttendance, employee })
+                                        }
+                                      }}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select employee" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {employees.map((employee) => (
+                                          <SelectItem key={employee.id} value={employee.id.toString()}>
+                                            {employee.firstName} {employee.lastName}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label htmlFor="edit-date">Date</Label>
+                                    <Input
+                                      id="edit-date"
+                                      type="date"
+                                      value={selectedAttendance.date}
+                                      onChange={(e) =>
+                                        setSelectedAttendance({ ...selectedAttendance, date: e.target.value })
+                                      }
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label htmlFor="edit-status">Status</Label>
+                                    <Select
+                                      value={selectedAttendance.status}
+                                      onValueChange={(value) =>
+                                        setSelectedAttendance({ ...selectedAttendance, status: value as Attendance['status'] })
+                                      }
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select status" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="PRESENT">Present</SelectItem>
+                                        <SelectItem value="ABSENT">Absent</SelectItem>
+                                        <SelectItem value="LATE">Late</SelectItem>
+                                        <SelectItem value="LEAVE">Leave</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+                              )}
+                              <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                                  Cancel
+                                </Button>
+                                <Button onClick={handleEditAttendance}>Save Changes</Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                            <DialogTrigger asChild>
+                              <DropdownMenuItem
+                                onSelect={(e) => {
+                                  e.preventDefault()
+                                  setSelectedAttendance(attendance)
+                                }}
+                                className="text-red-600"
+                              >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Delete Attendance</DialogTitle>
+                                <DialogDescription>
+                                  Are you sure you want to delete this attendance record? This action cannot be undone.
+                                </DialogDescription>
+                              </DialogHeader>
+                              {selectedAttendance && (
+                                <div className="py-4">
+                                  <p>
+                                    You are about to delete the attendance record for{" "}
+                                    <strong>
+                                      {selectedAttendance.employee.firstName} {selectedAttendance.employee.lastName}
+                                    </strong>{" "}
+                                    on {new Date(selectedAttendance.date).toLocaleDateString()}.
+                                  </p>
+                                </div>
+                              )}
+                              <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                                  Cancel
+                                </Button>
+                                <Button variant="destructive" onClick={handleDeleteAttendance}>
+                                  Delete
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   )
 }

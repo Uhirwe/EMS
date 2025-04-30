@@ -29,8 +29,9 @@ public class SalaryController {
     }
 
     @PostMapping
-    public Salary createSalary(@RequestBody Salary salary) {
-        return salaryService.createSalary(salary);
+    public ResponseEntity<Salary> createSalary(@RequestBody Salary salary) {
+        Salary createdSalary = salaryService.createSalary(salary);
+        return ResponseEntity.ok(createdSalary);
     }
 
     @PutMapping("/{id}")

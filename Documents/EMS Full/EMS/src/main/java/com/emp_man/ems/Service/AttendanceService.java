@@ -31,6 +31,7 @@ public class AttendanceService {
     public Attendance updateAttendance(Long id, Attendance attendanceDetails) {
         Attendance attendance = getAttendanceById(id);
         attendance.setEmployee(attendanceDetails.getEmployee());
+        attendance.setDepartment(attendanceDetails.getDepartment());
         attendance.setDate(attendanceDetails.getDate());
         attendance.setStatus(attendanceDetails.getStatus());
         return attendanceRepository.save(attendance);

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { CalendarIcon, ChevronDown, Download, Edit, MoreHorizontal, Plus, Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -21,146 +22,156 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
-
-// Sample salary data
-const salaryRecords = [
-  {
-    id: 1,
-    employeeId: 1,
-    employeeName: "John Doe",
-    department: "Engineering",
-    position: "Senior Developer",
-    basicSalary: 5000,
-    allowances: 800,
-    deductions: 300,
-    netSalary: 5500,
-    paymentDate: "2023-04-30",
-    status: "Paid",
-  },
-  {
-    id: 2,
-    employeeId: 2,
-    employeeName: "Jane Smith",
-    department: "Marketing",
-    position: "Marketing Manager",
-    basicSalary: 4500,
-    allowances: 600,
-    deductions: 250,
-    netSalary: 4850,
-    paymentDate: "2023-04-30",
-    status: "Paid",
-  },
-  {
-    id: 3,
-    employeeId: 3,
-    employeeName: "Robert Johnson",
-    department: "Finance",
-    position: "Financial Analyst",
-    basicSalary: 4000,
-    allowances: 500,
-    deductions: 200,
-    netSalary: 4300,
-    paymentDate: "2023-04-30",
-    status: "Paid",
-  },
-  {
-    id: 4,
-    employeeId: 4,
-    employeeName: "Emily Davis",
-    department: "Human Resources",
-    position: "HR Specialist",
-    basicSalary: 3800,
-    allowances: 450,
-    deductions: 180,
-    netSalary: 4070,
-    paymentDate: "2023-04-30",
-    status: "Paid",
-  },
-  {
-    id: 5,
-    employeeId: 5,
-    employeeName: "Michael Chen",
-    department: "Engineering",
-    position: "Frontend Developer",
-    basicSalary: 4200,
-    allowances: 550,
-    deductions: 220,
-    netSalary: 4530,
-    paymentDate: "2023-04-30",
-    status: "Paid",
-  },
-  {
-    id: 6,
-    employeeId: 6,
-    employeeName: "Sarah Johnson",
-    department: "Sales",
-    position: "Sales Representative",
-    basicSalary: 3500,
-    allowances: 700,
-    deductions: 150,
-    netSalary: 4050,
-    paymentDate: "2023-04-30",
-    status: "Paid",
-  },
-  {
-    id: 7,
-    employeeId: 7,
-    employeeName: "David Wilson",
-    department: "Engineering",
-    position: "Backend Developer",
-    basicSalary: 4300,
-    allowances: 600,
-    deductions: 230,
-    netSalary: 4670,
-    paymentDate: "2023-04-30",
-    status: "Paid",
-  },
-]
+import { salaryApi, employeeApi } from "@/lib/api/employee"
+import { Salary, Employee } from "@/types/employee"
 
 export default function SalaryPage() {
+  const router = useRouter()
+  const [salaries, setSalaries] = useState<Salary[]>([])
+  const [employees, setEmployees] = useState<Employee[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [date, setDate] = useState<Date | undefined>(new Date())
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [selectedRecord, setSelectedRecord] = useState<any>(null)
-  const [newRecord, setNewRecord] = useState({
-    employeeName: "",
-    department: "",
-    position: "",
+  const [selectedRecord, setSelectedRecord] = useState<Salary | null>(null)
+  const [newRecord, setNewRecord] = useState<{
+    employee: Employee;
+    department: Department;
+    basicSalary: string;
+    allowances: string;
+    deductions: string;
+    paymentDate: string;
+    status: 'PENDING' | 'PAID';
+  }>({
+    employee: {} as Employee,
+    department: {} as Department,
     basicSalary: "",
     allowances: "",
     deductions: "",
     paymentDate: format(new Date(), "yyyy-MM-dd"),
-    status: "Pending",
+    status: "PENDING",
   })
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const filteredRecords = salaryRecords.filter(
-    (record) =>
-      record.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.position.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  useEffect(() => {
+    loadData()
+  }, [])
 
-  const handleAddRecord = () => {
-    // In a real app, this would add the record to the database
-    console.log("Adding salary record:", newRecord)
-    setIsAddDialogOpen(false)
-    setNewRecord({
-      employeeName: "",
-      department: "",
-      position: "",
-      basicSalary: "",
-      allowances: "",
-      deductions: "",
-      paymentDate: format(new Date(), "yyyy-MM-dd"),
-      status: "Pending",
-    })
+  const loadData = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const [salaryData, employeeData] = await Promise.all([
+        salaryApi.getAllSalaries(),
+        employeeApi.getAllEmployees()
+      ])
+      setSalaries(salaryData)
+      setEmployees(employeeData)
+    } catch (error: any) {
+      console.error("Failed to load data:", error)
+      if (error.message?.includes("401")) {
+        setError("Authentication required. Please log in.")
+        router.push("/auth/login")
+      } else {
+        setError("Failed to load data. Please try again later.")
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleEditRecord = () => {
-    // In a real app, this would update the record in the database
-    console.log("Editing salary record:", selectedRecord)
-    setIsEditDialogOpen(false)
+  const filteredRecords = salaries.filter(
+    (record) =>
+      `${record.employee.firstName} ${record.employee.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      record.department.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
+
+  const handleAddRecord = async () => {
+    try {
+      if (!newRecord.employee.id) {
+        setError("Employee is required")
+        return
+      }
+      if (!newRecord.basicSalary || !newRecord.allowances || !newRecord.deductions) {
+        setError("All salary fields are required")
+        return
+      }
+
+      const netSalary = Number(newRecord.basicSalary) + Number(newRecord.allowances) - Number(newRecord.deductions)
+
+      await salaryApi.createSalary({
+        employee: newRecord.employee,
+        department: newRecord.employee.department,
+        basicSalary: Number(newRecord.basicSalary),
+        allowances: Number(newRecord.allowances),
+        deductions: Number(newRecord.deductions),
+        netSalary,
+        paymentDate: newRecord.paymentDate,
+        status: newRecord.status,
+      })
+
+      const updatedSalaries = await salaryApi.getAllSalaries()
+      setSalaries(updatedSalaries)
+
+      setIsAddDialogOpen(false)
+      setNewRecord({
+        employee: {} as Employee,
+        department: {} as Department,
+        basicSalary: "",
+        allowances: "",
+        deductions: "",
+        paymentDate: format(new Date(), "yyyy-MM-dd"),
+        status: "PENDING",
+      })
+    } catch (error: any) {
+      console.error("Failed to add salary record:", error)
+      setError(error.message || "Failed to add salary record. Please try again later.")
+    }
+  }
+
+  const handleEditRecord = async () => {
+    if (!selectedRecord) return
+    try {
+      if (!selectedRecord.employee.id) {
+        setError("Employee is required")
+        return
+      }
+      if (!selectedRecord.basicSalary || !selectedRecord.allowances || !selectedRecord.deductions) {
+        setError("All salary fields are required")
+        return
+      }
+
+      const netSalary = selectedRecord.basicSalary + selectedRecord.allowances - selectedRecord.deductions
+
+      await salaryApi.updateSalary(selectedRecord.id, {
+        ...selectedRecord,
+        netSalary,
+      })
+
+      const updatedSalaries = await salaryApi.getAllSalaries()
+      setSalaries(updatedSalaries)
+      setIsEditDialogOpen(false)
+      setSelectedRecord(null)
+    } catch (error: any) {
+      console.error("Failed to update salary record:", error)
+      setError(error.message || "Failed to update salary record. Please try again later.")
+    }
+  }
+
+  const handleDeleteRecord = async () => {
+    if (!selectedRecord) return
+
+    try {
+      await salaryApi.deleteSalary(selectedRecord.id)
+      const updatedSalaries = await salaryApi.getAllSalaries()
+      setSalaries(updatedSalaries)
+      setIsEditDialogOpen(false)
+      setSelectedRecord(null)
+    } catch (error: any) {
+      console.error("Failed to delete salary record:", error)
+      setError(error.message || "Failed to delete salary record. Please try again later.")
+    }
   }
 
   return (
@@ -199,51 +210,28 @@ export default function SalaryPage() {
                 <DialogDescription>Add a new salary record for an employee.</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="employeeName">Employee</Label>
-                    <Select
-                      value={newRecord.employeeName}
-                      onValueChange={(value) => setNewRecord({ ...newRecord, employeeName: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select employee" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="John Doe">John Doe</SelectItem>
-                        <SelectItem value="Jane Smith">Jane Smith</SelectItem>
-                        <SelectItem value="Robert Johnson">Robert Johnson</SelectItem>
-                        <SelectItem value="Emily Davis">Emily Davis</SelectItem>
-                        <SelectItem value="Michael Chen">Michael Chen</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="department">Department</Label>
-                    <Select
-                      value={newRecord.department}
-                      onValueChange={(value) => setNewRecord({ ...newRecord, department: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Engineering">Engineering</SelectItem>
-                        <SelectItem value="Marketing">Marketing</SelectItem>
-                        <SelectItem value="Finance">Finance</SelectItem>
-                        <SelectItem value="Human Resources">Human Resources</SelectItem>
-                        <SelectItem value="Sales">Sales</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
                 <div className="space-y-2">
-                  <Label htmlFor="position">Position</Label>
-                  <Input
-                    id="position"
-                    value={newRecord.position}
-                    onChange={(e) => setNewRecord({ ...newRecord, position: e.target.value })}
-                  />
+                  <Label htmlFor="employee">Employee</Label>
+                  <Select
+                    value={newRecord.employee.id?.toString()}
+                    onValueChange={(value) => {
+                      const employee = employees.find(e => e.id.toString() === value)
+                      if (employee) {
+                        setNewRecord({ ...newRecord, employee, department: employee.department })
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select employee" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.id.toString()}>
+                          {employee.firstName} {employee.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
@@ -288,14 +276,14 @@ export default function SalaryPage() {
                     <Label htmlFor="status">Status</Label>
                     <Select
                       value={newRecord.status}
-                      onValueChange={(value) => setNewRecord({ ...newRecord, status: value })}
+                      onValueChange={(value) => setNewRecord({ ...newRecord, status: value as 'PENDING' | 'PAID' })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Pending">Pending</SelectItem>
-                        <SelectItem value="Paid">Paid</SelectItem>
+                        <SelectItem value="PENDING">Pending</SelectItem>
+                        <SelectItem value="PAID">Paid</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -332,137 +320,189 @@ export default function SalaryPage() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem>All Departments</DropdownMenuItem>
-            <DropdownMenuItem>Engineering</DropdownMenuItem>
-            <DropdownMenuItem>Marketing</DropdownMenuItem>
-            <DropdownMenuItem>Finance</DropdownMenuItem>
-            <DropdownMenuItem>Human Resources</DropdownMenuItem>
-            <DropdownMenuItem>Sales</DropdownMenuItem>
+            {Array.from(new Set(employees.map(e => e.department.name))).map((dept) => (
+              <DropdownMenuItem key={dept}>{dept}</DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Employee</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Position</TableHead>
-              <TableHead>Basic Salary</TableHead>
-              <TableHead>Allowances</TableHead>
-              <TableHead>Deductions</TableHead>
-              <TableHead>Net Salary</TableHead>
-              <TableHead>Payment Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredRecords.map((record) => (
-              <TableRow key={record.id}>
-                <TableCell className="font-medium">{record.employeeName}</TableCell>
-                <TableCell>{record.department}</TableCell>
-                <TableCell>{record.position}</TableCell>
-                <TableCell>${record.basicSalary.toLocaleString()}</TableCell>
-                <TableCell>${record.allowances.toLocaleString()}</TableCell>
-                <TableCell>${record.deductions.toLocaleString()}</TableCell>
-                <TableCell>${record.netSalary.toLocaleString()}</TableCell>
-                <TableCell>{new Date(record.paymentDate).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      record.status === "Paid" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {record.status}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Actions</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                        <DialogTrigger asChild>
-                          <DropdownMenuItem
-                            onSelect={(e) => {
-                              e.preventDefault()
-                              setSelectedRecord(record)
-                            }}
-                          >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Edit Salary Record</DialogTitle>
-                            <DialogDescription>Update salary information.</DialogDescription>
-                          </DialogHeader>
-                          {selectedRecord && (
-                            <div className="grid gap-4 py-4">
-                              <div className="grid grid-cols-3 gap-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-basicSalary">Basic Salary</Label>
-                                  <Input
-                                    id="edit-basicSalary"
-                                    type="number"
-                                    defaultValue={selectedRecord.basicSalary}
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-allowances">Allowances</Label>
-                                  <Input id="edit-allowances" type="number" defaultValue={selectedRecord.allowances} />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-deductions">Deductions</Label>
-                                  <Input id="edit-deductions" type="number" defaultValue={selectedRecord.deductions} />
-                                </div>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-paymentDate">Payment Date</Label>
-                                  <Input id="edit-paymentDate" type="date" defaultValue={selectedRecord.paymentDate} />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-status">Status</Label>
-                                  <Select defaultValue={selectedRecord.status}>
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="Pending">Pending</SelectItem>
-                                      <SelectItem value="Paid">Paid</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                              Cancel
-                            </Button>
-                            <Button onClick={handleEditRecord}>Save Changes</Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                      <DropdownMenuItem>
-                        <Download className="mr-2 h-4 w-4" />
-                        Download Slip
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{error}</span>
+          <button className="absolute top-0 bottom-0 right-0 px-4 py-3" onClick={() => setError(null)}>
+            <span className="sr-only">Dismiss</span>
+            <span className="text-xl">×</span>
+          </button>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Employee</TableHead>
+                <TableHead>Department</TableHead>
+                <TableHead>Basic Salary</TableHead>
+                <TableHead>Allowances</TableHead>
+                <TableHead>Deductions</TableHead>
+                <TableHead>Net Salary</TableHead>
+                <TableHead>Payment Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {filteredRecords.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-8">
+                    {searchTerm ? "No salary records match your search criteria." : "No salary records found. Add some records to get started."}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredRecords.map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell className="font-medium">
+                      {record.employee.firstName} {record.employee.lastName}
+                    </TableCell>
+                    <TableCell>{record.department.name}</TableCell>
+                    <TableCell>${record.basicSalary.toLocaleString()}</TableCell>
+                    <TableCell>${record.allowances.toLocaleString()}</TableCell>
+                    <TableCell>${record.deductions.toLocaleString()}</TableCell>
+                    <TableCell>${record.netSalary.toLocaleString()}</TableCell>
+                    <TableCell>{new Date(record.paymentDate).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          record.status === "PAID" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {record.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Actions</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                            <DialogTrigger asChild>
+                              <DropdownMenuItem
+                                onSelect={(e) => {
+                                  e.preventDefault()
+                                  setSelectedRecord(record)
+                                }}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Edit Salary Record</DialogTitle>
+                                <DialogDescription>Update salary information.</DialogDescription>
+                              </DialogHeader>
+                              {selectedRecord && (
+                                <div className="grid gap-4 py-4">
+                                  <div className="grid grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-basicSalary">Basic Salary</Label>
+                                      <Input
+                                        id="edit-basicSalary"
+                                        type="number"
+                                        value={selectedRecord.basicSalary}
+                                        onChange={(e) =>
+                                          setSelectedRecord({ ...selectedRecord, basicSalary: Number(e.target.value) })
+                                        }
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-allowances">Allowances</Label>
+                                      <Input
+                                        id="edit-allowances"
+                                        type="number"
+                                        value={selectedRecord.allowances}
+                                        onChange={(e) =>
+                                          setSelectedRecord({ ...selectedRecord, allowances: Number(e.target.value) })
+                                        }
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-deductions">Deductions</Label>
+                                      <Input
+                                        id="edit-deductions"
+                                        type="number"
+                                        value={selectedRecord.deductions}
+                                        onChange={(e) =>
+                                          setSelectedRecord({ ...selectedRecord, deductions: Number(e.target.value) })
+                                        }
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-paymentDate">Payment Date</Label>
+                                      <Input
+                                        id="edit-paymentDate"
+                                        type="date"
+                                        value={selectedRecord.paymentDate}
+                                        onChange={(e) =>
+                                          setSelectedRecord({ ...selectedRecord, paymentDate: e.target.value })
+                                        }
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-status">Status</Label>
+                                      <Select
+                                        value={selectedRecord.status}
+                                        onValueChange={(value) =>
+                                          setSelectedRecord({ ...selectedRecord, status: value as 'PENDING' | 'PAID' })
+                                        }
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="PENDING">Pending</SelectItem>
+                                          <SelectItem value="PAID">Paid</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                                  Cancel
+                                </Button>
+                                <Button onClick={handleEditRecord}>Save Changes</Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                          <DropdownMenuItem onClick={() => handleDeleteRecord()}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Download Slip
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,7 +1,6 @@
 package com.emp_man.ems.Models;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 
 @Entity
@@ -15,10 +14,14 @@ public class LeaveRequest {
     @JoinColumn(name = "employee_id")
     private Employee employee;
 
+    @ManyToOne
+    @JoinColumn(name = "department_id")
+    private Department department;
+
     private LocalDate startDate;
     private LocalDate endDate;
-    private String reason;
     private String status;
+    private String reason;
 
     // Getters and Setters
     public Long getId() {
@@ -37,6 +40,14 @@ public class LeaveRequest {
         this.employee = employee;
     }
 
+    public Department getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+
     public LocalDate getStartDate() {
         return startDate;
     }
@@ -53,19 +64,19 @@ public class LeaveRequest {
         this.endDate = endDate;
     }
 
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
-
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 }

@@ -1,4 +1,4 @@
-import { Employee, Department } from '@/types/employee';
+import { Employee, Department, Attendance, LeaveRequest, Salary } from "@/types/employee";
 
 // Use a function to get the API base URL to ensure it's evaluated at runtime
 const getApiBaseUrl = () => {
@@ -210,4 +210,194 @@ export const departmentApi = {
       throw new Error(error.message || 'Failed to update employee count');
     }
   }
+};
+
+export const attendanceApi = {
+  getAllAttendances: async (): Promise<Attendance[]> => {
+    const response = await fetch(`${getApiBaseUrl()}/attendances`, {
+      headers: getHeaders()
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch attendances');
+    }
+    return response.json();
+  },
+
+  getAttendanceById: async (id: number): Promise<Attendance> => {
+    const response = await fetch(`${getApiBaseUrl()}/attendances/${id}`, {
+      headers: getHeaders()
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch attendance');
+    }
+    return response.json();
+  },
+
+  createAttendance: async (attendance: Omit<Attendance, 'id'>): Promise<Attendance> => {
+    const response = await fetch(`${getApiBaseUrl()}/attendances`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(attendance),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to create attendance');
+    }
+    return response.json();
+  },
+
+  updateAttendance: async (id: number, attendance: Partial<Attendance>): Promise<Attendance> => {
+    const response = await fetch(`${getApiBaseUrl()}/attendances/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(attendance),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update attendance');
+    }
+    return response.json();
+  },
+
+  deleteAttendance: async (id: number): Promise<void> => {
+    const response = await fetch(`${getApiBaseUrl()}/attendances/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to delete attendance');
+    }
+  }
+};
+
+export const leaveRequestApi = {
+  getAllLeaveRequests: async (): Promise<LeaveRequest[]> => {
+    const response = await fetch(`${getApiBaseUrl()}/leave-requests`, {
+      headers: getHeaders()
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch leave requests');
+    }
+    return response.json();
+  },
+
+  getLeaveRequestById: async (id: number): Promise<LeaveRequest> => {
+    const response = await fetch(`${getApiBaseUrl()}/leave-requests/${id}`, {
+      headers: getHeaders()
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch leave request');
+    }
+    return response.json();
+  },
+
+  createLeaveRequest: async (leaveRequest: Omit<LeaveRequest, 'id'>): Promise<LeaveRequest> => {
+    const response = await fetch(`${getApiBaseUrl()}/leave-requests`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(leaveRequest),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to create leave request');
+    }
+    return response.json();
+  },
+
+  updateLeaveRequest: async (id: number, leaveRequest: Partial<LeaveRequest>): Promise<LeaveRequest> => {
+    const response = await fetch(`${getApiBaseUrl()}/leave-requests/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(leaveRequest),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update leave request');
+    }
+    return response.json();
+  },
+
+  deleteLeaveRequest: async (id: number): Promise<void> => {
+    const response = await fetch(`${getApiBaseUrl()}/leave-requests/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to delete leave request');
+    }
+  }
+};
+
+export const salaryApi = {
+  getAllSalaries: async (): Promise<Salary[]> => {
+    const response = await fetch(`${getApiBaseUrl()}/salaries`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch salaries');
+    }
+    return response.json();
+  },
+
+  getSalaryById: async (id: number): Promise<Salary> => {
+    const response = await fetch(`${getApiBaseUrl()}/salaries/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch salary');
+    }
+    return response.json();
+  },
+
+  createSalary: async (salary: Omit<Salary, 'id'>): Promise<Salary> => {
+    const response = await fetch(`${getApiBaseUrl()}/salaries`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify(salary),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create salary');
+    }
+    return response.json();
+  },
+
+  updateSalary: async (id: number, salary: Partial<Salary>): Promise<Salary> => {
+    const response = await fetch(`${getApiBaseUrl()}/salaries/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify(salary),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update salary');
+    }
+    return response.json();
+  },
+
+  deleteSalary: async (id: number): Promise<void> => {
+    const response = await fetch(`${getApiBaseUrl()}/salaries/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete salary');
+    }
+  },
 };

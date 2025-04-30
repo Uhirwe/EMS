@@ -1,4 +1,5 @@
 package com.emp_man.ems.Service;
+
 import com.emp_man.ems.Models.LeaveRequest;
 import com.emp_man.ems.Repositories.LeaveRequestRepository;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class LeaveRequestService {
 
     public LeaveRequest getLeaveRequestById(Long id) {
         return leaveRequestRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("LeaveRequest not found"));
+                .orElseThrow(() -> new RuntimeException("Leave request not found"));
     }
 
     public LeaveRequest createLeaveRequest(LeaveRequest leaveRequest) {
@@ -30,10 +31,11 @@ public class LeaveRequestService {
     public LeaveRequest updateLeaveRequest(Long id, LeaveRequest leaveRequestDetails) {
         LeaveRequest leaveRequest = getLeaveRequestById(id);
         leaveRequest.setEmployee(leaveRequestDetails.getEmployee());
+        leaveRequest.setDepartment(leaveRequestDetails.getDepartment());
         leaveRequest.setStartDate(leaveRequestDetails.getStartDate());
         leaveRequest.setEndDate(leaveRequestDetails.getEndDate());
-        leaveRequest.setReason(leaveRequestDetails.getReason());
         leaveRequest.setStatus(leaveRequestDetails.getStatus());
+        leaveRequest.setReason(leaveRequestDetails.getReason());
         return leaveRequestRepository.save(leaveRequest);
     }
 

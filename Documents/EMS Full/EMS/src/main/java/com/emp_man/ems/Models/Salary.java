@@ -1,12 +1,10 @@
 package com.emp_man.ems.Models;
 
-
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 
 @Entity
- public class Salary {
+public class Salary {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,8 +14,16 @@ import java.time.LocalDate;
     @JoinColumn(name = "employee_id")
     private Employee employee;
 
-    private Double amount;
+    @ManyToOne
+    @JoinColumn(name = "department_id")
+    private Department department;
+
+    private Double basicSalary;
+    private Double allowances;
+    private Double deductions;
+    private Double netSalary;
     private LocalDate paymentDate;
+    private String status;
 
     // Getters and Setters
     public Long getId() {
@@ -36,12 +42,44 @@ import java.time.LocalDate;
         this.employee = employee;
     }
 
-    public Double getAmount() {
-        return amount;
+    public Department getDepartment() {
+        return department;
     }
 
-    public void setAmount(Double amount) {
-        this.amount = amount;
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+
+    public Double getBasicSalary() {
+        return basicSalary;
+    }
+
+    public void setBasicSalary(Double basicSalary) {
+        this.basicSalary = basicSalary;
+    }
+
+    public Double getAllowances() {
+        return allowances;
+    }
+
+    public void setAllowances(Double allowances) {
+        this.allowances = allowances;
+    }
+
+    public Double getDeductions() {
+        return deductions;
+    }
+
+    public void setDeductions(Double deductions) {
+        this.deductions = deductions;
+    }
+
+    public Double getNetSalary() {
+        return netSalary;
+    }
+
+    public void setNetSalary(Double netSalary) {
+        this.netSalary = netSalary;
     }
 
     public LocalDate getPaymentDate() {
@@ -50,5 +88,13 @@ import java.time.LocalDate;
 
     public void setPaymentDate(LocalDate paymentDate) {
         this.paymentDate = paymentDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

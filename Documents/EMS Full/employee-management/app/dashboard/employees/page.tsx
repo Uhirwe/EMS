@@ -25,9 +25,9 @@ export default function EmployeesPage() {
   const router = useRouter();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [departments, setDepartments] = useState<Department[]>([
-    { id: 1, name: "Engineering", createdDate: new Date().toISOString().split('T')[0], employeeCount: 0 },
-    { id: 2, name: "Human Resources", createdDate: new Date().toISOString().split('T')[0], employeeCount: 0 },
-    { id: 3, name: "Software Engineering", createdDate: new Date().toISOString().split('T')[0], employeeCount: 0 }
+    { id: 1, name: "Engineering", manager: "John Doe", createdDate: new Date().toISOString().split('T')[0], employeeCount: 0 },
+    { id: 2, name: "Human Resources", manager: "Jane Smith", createdDate: new Date().toISOString().split('T')[0], employeeCount: 0 },
+    { id: 3, name: "Software Engineering", manager: "Mike Johnson", createdDate: new Date().toISOString().split('T')[0], employeeCount: 0 }
   ]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -81,6 +81,7 @@ export default function EmployeesPage() {
         department: { 
           id: newEmployee.department.id,
           name: newEmployee.department.name,
+          manager: newEmployee.department.manager,
           createdDate: newEmployee.department.createdDate,
           employeeCount: newEmployee.department.employeeCount
         },
@@ -114,6 +115,7 @@ export default function EmployeesPage() {
         department: { 
           id: selectedEmployee.department.id,
           name: selectedEmployee.department.name,
+          manager: selectedEmployee.department.manager,
           createdDate: selectedEmployee.department.createdDate,
           employeeCount: selectedEmployee.department.employeeCount
         },
@@ -229,9 +231,10 @@ export default function EmployeesPage() {
                         department: dept ? { 
                           id: dept.id, 
                           name: dept.name,
+                          manager: dept.manager,
                           createdDate: dept.createdDate,
                           employeeCount: dept.employeeCount
-                        } : { id: 0, name: "", createdDate: new Date().toISOString().split('T')[0], employeeCount: 0 },
+                        } : { id: 0, name: "", manager: "", createdDate: new Date().toISOString().split('T')[0], employeeCount: 0 },
                       });
                     }}
                     className="w-full border rounded p-2"
@@ -413,9 +416,10 @@ export default function EmployeesPage() {
                                           department: dept ? { 
                                             id: dept.id, 
                                             name: dept.name,
+                                            manager: dept.manager,
                                             createdDate: dept.createdDate,
                                             employeeCount: dept.employeeCount
-                                          } : { id: 0, name: "", createdDate: new Date().toISOString().split('T')[0], employeeCount: 0 },
+                                          } : { id: 0, name: "", manager: "", createdDate: new Date().toISOString().split('T')[0], employeeCount: 0 },
                                         });
                                       }}
                                       className="w-full border rounded p-2"

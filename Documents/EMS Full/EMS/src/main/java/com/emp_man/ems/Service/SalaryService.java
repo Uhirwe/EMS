@@ -31,8 +31,13 @@ public class SalaryService {
     public Salary updateSalary(Long id, Salary salaryDetails) {
         Salary salary = getSalaryById(id);
         salary.setEmployee(salaryDetails.getEmployee());
-        salary.setAmount(salaryDetails.getAmount());
+        salary.setDepartment(salaryDetails.getDepartment());
+        salary.setBasicSalary(salaryDetails.getBasicSalary());
+        salary.setAllowances(salaryDetails.getAllowances());
+        salary.setDeductions(salaryDetails.getDeductions());
+        salary.setNetSalary(salaryDetails.getNetSalary());
         salary.setPaymentDate(salaryDetails.getPaymentDate());
+        salary.setStatus(salaryDetails.getStatus());
         return salaryRepository.save(salary);
     }
 

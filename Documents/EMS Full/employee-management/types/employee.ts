@@ -16,3 +16,31 @@ export interface Employee {
   phone?: string;
   department: Department;
 }
+
+export interface Attendance {
+  id: number;
+  employee: Employee;
+  date: string;
+  status: 'PRESENT' | 'ABSENT' | 'LATE' | 'LEAVE';
+}
+
+export interface LeaveRequest {
+  id: number;
+  employee: Employee;
+  startDate: string;
+  endDate: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  reason: string;
+}
+
+export interface Salary {
+  id: number;
+  employee: Employee;
+  department: Department;
+  basicSalary: number;
+  allowances: number;
+  deductions: number;
+  netSalary: number;
+  paymentDate: string;
+  status: 'PENDING' | 'PAID';
+}
