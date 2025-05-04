@@ -18,8 +18,9 @@ public class DepartmentController {
     }
 
     @GetMapping
-    public List<Department> getAllDepartments() {
-        return departmentService.getAllDepartments();
+    public ResponseEntity<List<Department>> getAllDepartments() {
+        List<Department> departments = departmentService.getAllDepartments();
+        return ResponseEntity.ok(departments);
     }
 
     @GetMapping("/{id}")
@@ -37,7 +38,6 @@ public class DepartmentController {
             if (department.getManager() == null || department.getManager().trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("Department manager is required");
             }
-
             Department createdDepartment = departmentService.createDepartment(department);
             return ResponseEntity.ok(createdDepartment);
         } catch (Exception e) {
@@ -54,9 +54,10 @@ public class DepartmentController {
             if (departmentDetails.getManager() == null || departmentDetails.getManager().trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("Department manager is required");
             }
-
             Department updatedDepartment = departmentService.updateDepartment(id, departmentDetails);
             return ResponseEntity.ok(updatedDepartment);
+        } catch (IllegalAccessError e) {
+            return ResponseEntity.status(403).body("Unauthorized access to department record");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error updating department: " + e.getMessage());
         }
@@ -67,9 +68,10 @@ public class DepartmentController {
         try {
             departmentService.deleteDepartment(id);
             return ResponseEntity.ok("Department deleted successfully");
+        } catch (IllegalAccessError e) {
+            return ResponseEntity.status(403).body("Unauthorized access to department record");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error deleting department: " + e.getMessage());
         }
     }
-
 }

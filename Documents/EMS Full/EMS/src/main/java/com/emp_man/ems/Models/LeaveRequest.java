@@ -17,6 +17,9 @@ public class LeaveRequest {
     @ManyToOne
     @JoinColumn(name = "department_id")
     private Department department;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     private LocalDate startDate;
     private LocalDate endDate;
@@ -24,6 +27,13 @@ public class LeaveRequest {
     private String reason;
 
     // Getters and Setters
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
     public Long getId() {
         return id;
     }

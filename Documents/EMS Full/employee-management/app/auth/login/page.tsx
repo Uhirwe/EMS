@@ -58,8 +58,12 @@ export default function LoginPage() {
       }
 
       const data = await res.json()
+      console.log("LOGIN RESPONSE:", data)
       if (data.token) {
         localStorage.setItem("token", data.token)
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+        }
         router.push("/dashboard/employees")
       } else {
         throw new Error("No token received from server")

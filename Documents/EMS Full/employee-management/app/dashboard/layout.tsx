@@ -4,8 +4,8 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { BarChart3, Building, Calendar, Clock, CreditCard, LogOut, Menu, Settings, User, Users } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { BarChart3, Building, Calendar, Clock, CreditCard, LogOut, Menu, User, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -55,12 +55,6 @@ const navItems: NavItem[] = [
     icon: CreditCard,
     color: "text-green-500",
   },
-  {
-    title: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
-    color: "text-slate-500",
-  },
 ]
 
 export default function DashboardLayout({
@@ -69,7 +63,14 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    router.push('/')
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -107,13 +108,13 @@ export default function DashboardLayout({
                 ))}
               </div>
               <div className="mt-auto">
-                <Link
-                  href="/"
-                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950 dark:hover:text-red-300"
                 >
-                  <LogOut className="h-5 w-5 text-red-500" />
+                  <LogOut className="h-5 w-5" />
                   Logout
-                </Link>
+                </button>
               </div>
             </nav>
           </SheetContent>
@@ -147,6 +148,13 @@ export default function DashboardLayout({
                 <span className={pathname === item.href ? item.color : ""}>{item.title}</span>
               </Link>
             ))}
+            <button
+              onClick={handleLogout}
+              className="mt-auto flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950 dark:hover:text-red-300"
+            >
+              <LogOut className="h-5 w-5" />
+              Logout
+            </button>
           </nav>
         </aside>
         <main className="flex-1 p-4 md:p-6">{children}</main>

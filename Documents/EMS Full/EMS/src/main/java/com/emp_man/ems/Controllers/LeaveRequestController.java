@@ -18,8 +18,9 @@ public class LeaveRequestController {
     }
 
     @GetMapping
-    public List<LeaveRequest> getAllLeaveRequests() {
-        return leaveRequestService.getAllLeaveRequests();
+    public ResponseEntity<List<LeaveRequest>> getAllLeaveRequests() {
+        List<LeaveRequest> leaveRequests = leaveRequestService.getAllLeaveRequests();
+        return ResponseEntity.ok(leaveRequests);
     }
 
     @GetMapping("/{id}")

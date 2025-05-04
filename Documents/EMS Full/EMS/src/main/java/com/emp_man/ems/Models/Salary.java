@@ -24,6 +24,9 @@ public class Salary {
     private Double netSalary;
     private LocalDate paymentDate;
     private String status;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     // Getters and Setters
     public Long getId() {
@@ -32,6 +35,13 @@ public class Salary {
 
     public void setId(Long id) {
         this.id = id;
+    }
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public Employee getEmployee() {

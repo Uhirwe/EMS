@@ -1,10 +1,7 @@
 package com.emp_man.ems.Models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
+import jakarta.persistence.*;
+
 import java.time.LocalDate;
 
 @Entity
@@ -18,7 +15,11 @@ public class Department {
     private String manager;
     private String description;
     private LocalDate createdDate;
-    private int employeeCount;  // NEW FIELD
+    private int employeeCount;
+    // NEW FIELD
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @PrePersist
     protected void onCreate() {
@@ -53,6 +54,13 @@ public class Department {
 
     public void setId(Long id) {
         this.id = id;
+    }
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public void setName(String name) {

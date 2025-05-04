@@ -1,27 +1,36 @@
 import { NextResponse } from 'next/server'
-import { Employee } from '@/types/employee'
+import { Employee, Department } from '@/types/employee'
 
 // In a real application, this would be replaced with a database
 let employees: Employee[] = [
   {
     id: 1,
-    name: "John Doe",
+    firstName: "John",
+    lastName: "Doe",
     email: "john.doe@example.com",
-    department: "Engineering",
-    position: "Senior Developer",
-    joinDate: "2021-05-12",
-    status: "Active",
+    phone: "1234567890",
+    department: {
+      id: 1,
+      name: "Engineering",
+      manager: "Mike Johnson",
+      employeeCount: 5,
+      createdDate: new Date().toISOString().split('T')[0]
+    }
   },
   {
     id: 2,
-    name: "Jane Smith",
+    firstName: "Jane",
+    lastName: "Smith",
     email: "jane.smith@example.com",
-    department: "Marketing",
-    position: "Marketing Manager",
-    joinDate: "2020-03-15",
-    status: "Active",
-  },
-  // Add more sample data as needed
+    phone: "0987654321",
+    department: {
+      id: 2,
+      name: "Human Resources",
+      manager: "Sarah Wilson",
+      employeeCount: 3,
+      createdDate: new Date().toISOString().split('T')[0]
+    }
+  }
 ]
 
 export async function GET(

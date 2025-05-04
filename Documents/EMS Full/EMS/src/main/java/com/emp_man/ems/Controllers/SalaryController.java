@@ -18,8 +18,9 @@ public class SalaryController {
     }
 
     @GetMapping
-    public List<Salary> getAllSalaries() {
-        return salaryService.getAllSalaries();
+    public ResponseEntity<List<Salary>> getAllSalaries() {
+        List<Salary> salaries = salaryService.getAllSalaries();
+        return ResponseEntity.ok(salaries);
     }
 
     @GetMapping("/{id}")

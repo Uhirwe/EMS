@@ -1,71 +1,130 @@
 package com.emp_man.ems.Service;
 
+import com.emp_man.ems.DTOs.EmployeeDTO;
 import com.emp_man.ems.Models.Employee;
+import com.emp_man.ems.Models.User;
 import com.emp_man.ems.Repositories.EmployeeRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
-    private final DepartmentService departmentService;
+    private final AuthService authService;
 
-    public EmployeeService(EmployeeRepository employeeRepository, DepartmentService departmentService) {
+    public EmployeeService(EmployeeRepository employeeRepository, AuthService authService) {
         this.employeeRepository = employeeRepository;
-        this.departmentService = departmentService;
+        this.authService = authService;
     }
 
-    public List<Employee> getAllEmployees() {
-        return employeeRepository.findAll();
+    public List<EmployeeDTO> getAllEmployees() {
+        User user = authService.getCurrentUser();
+        List<Employee> employees;
+        if (user.getRole().equals("HR Administrator")) {
+            employees = employeeRepository.findAll();
+        } else {
+            employees = employeeRepository.findByUserId(user.getId());
+        }
+        return employees.stream()
+                .map(employee -> new EmployeeDTO(
+                        employee.getId(),
+                        employee.getFirstname(),
+                        employee.getLastname(),
+                        employee.getEmail(),
+                        employee.getPhone(),
+                        employee.getDepartment()
+                ))
+                .collect(Collectors.toList());
     }
 
-    public Employee getEmployeeById(Long id) {
-        return employeeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+    public EmployeeDTO getEmployeeById(Long id) {
+        User user = authService.getCurrentUser();
+        Employee employee;
+        if (user.getRole().equals("HR Administrator")) {
+            employee = employeeRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Employee not found"));
+        } else {
+            employee = employeeRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Employee not found"));
+            if (!employee.getUser().getId().equals(user.getId())) {
+                throw new IllegalAccessError("Unauthorized access to employee record");
+            }
+        }
+        return new EmployeeDTO(
+                employee.getId(),
+                employee.getFirstname(),
+                employee.getLastname(),
+                employee.getEmail(),
+                employee.getPhone(),
+                employee.getDepartment()
+        );
     }
 
-    public Employee createEmployee(Employee employee) {
+    public EmployeeDTO createEmployee(EmployeeDTO employeeDTO) {
+        User user = authService.getCurrentUser();
+        Employee employee = new Employee();
+        employee.setFirstName(employeeDTO.getFirstName());
+        employee.setLastName(employeeDTO.getLastName());
+        employee.setEmail(employeeDTO.getEmail());
+        employee.setPhone(employeeDTO.getPhone());
+        employee.setDepartment(employeeDTO.getDepartment());
+        employee.setUser(user);
         Employee savedEmployee = employeeRepository.save(employee);
-        // Update department's employeeCount
-        if (employee.getDepartment() != null && employee.getDepartment().getId() != null) {
-            departmentService.updateEmployeeCount(employee.getDepartment().getId(), 1);
-        }
-        return savedEmployee;
+        return new EmployeeDTO(
+                savedEmployee.getId(),
+                savedEmployee.getFirstname(),
+                savedEmployee.getLastname(),
+                savedEmployee.getEmail(),
+                savedEmployee.getPhone(),
+                savedEmployee.getDepartment()
+        );
     }
 
-    public Employee updateEmployee(Long id, Employee employeeDetails) {
-        Employee employee = getEmployeeById(id);
-        Long oldDepartmentId = employee.getDepartment() != null ? employee.getDepartment().getId() : null;
-        Long newDepartmentId = employeeDetails.getDepartment() != null ? employeeDetails.getDepartment().getId() : null;
-
-        employee.setFirstName(employeeDetails.getFirstName());
-        employee.setLastName(employeeDetails.getLastName());
-        employee.setEmail(employeeDetails.getEmail());
-        employee.setPhone(employeeDetails.getPhone());
-        employee.setDepartment(employeeDetails.getDepartment());
-
+    public EmployeeDTO updateEmployee(Long id, EmployeeDTO employeeDTO) {
+        User user = authService.getCurrentUser();
+        Employee employee;
+        if (user.getRole().equals("HR Administrator")) {
+            employee = employeeRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Employee not found"));
+        } else {
+            employee = employeeRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Employee not found"));
+            if (!employee.getUser().getId().equals(user.getId())) {
+                throw new IllegalAccessError("Unauthorized access to employee record");
+            }
+        }
+        employee.setFirstName(employeeDTO.getFirstName());
+        employee.setLastName(employeeDTO.getLastName());
+        employee.setEmail(employeeDTO.getEmail());
+        employee.setPhone(employeeDTO.getPhone());
+        employee.setDepartment(employeeDTO.getDepartment());
         Employee updatedEmployee = employeeRepository.save(employee);
-
-        // Update department employee counts
-        if (oldDepartmentId != null && !oldDepartmentId.equals(newDepartmentId)) {
-            departmentService.updateEmployeeCount(oldDepartmentId, -1); // Decrease old department
-        }
-        if (newDepartmentId != null) {
-            departmentService.updateEmployeeCount(newDepartmentId, 1); // Increase new department
-        }
-
-        return updatedEmployee;
+        return new EmployeeDTO(
+                updatedEmployee.getId(),
+                updatedEmployee.getFirstname(),
+                updatedEmployee.getLastname(),
+                updatedEmployee.getEmail(),
+                updatedEmployee.getPhone(),
+                updatedEmployee.getDepartment()
+        );
     }
 
     public void deleteEmployee(Long id) {
-        Employee employee = getEmployeeById(id);
-        Long departmentId = employee.getDepartment() != null ? employee.getDepartment().getId() : null;
-        employeeRepository.delete(employee);
-        // Update department's employeeCount
-        if (departmentId != null) {
-            departmentService.updateEmployeeCount(departmentId, -1);
+        User user = authService.getCurrentUser();
+        Employee employee;
+        if (user.getRole().equals("HR Administrator")) {
+            employee = employeeRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Employee not found"));
+        } else {
+            employee = employeeRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Employee not found"));
+            if (!employee.getUser().getId().equals(user.getId())) {
+                throw new IllegalAccessError("Unauthorized access to employee record");
+            }
         }
+        employeeRepository.delete(employee);
     }
 }

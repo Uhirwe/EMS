@@ -24,11 +24,7 @@ import { Employee, Department } from "@/types/employee";
 export default function EmployeesPage() {
   const router = useRouter();
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([
-    { id: 1, name: "Engineering", manager: "John Doe", createdDate: new Date().toISOString().split('T')[0], employeeCount: 0 },
-    { id: 2, name: "Human Resources", manager: "Jane Smith", createdDate: new Date().toISOString().split('T')[0], employeeCount: 0 },
-    { id: 3, name: "Software Engineering", manager: "Mike Johnson", createdDate: new Date().toISOString().split('T')[0], employeeCount: 0 }
-  ]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -41,7 +37,7 @@ export default function EmployeesPage() {
     lastName: "",
     email: "",
     phone: "",
-    department: departments[0],
+    department: { id: 0, name: "", manager: "", createdDate: "", employeeCount: 0 },
   });
 
   useEffect(() => {
@@ -52,8 +48,16 @@ export default function EmployeesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const employeeData = await employeeApi.getAllEmployees();
+      const [employeeData, departmentData] = await Promise.all([
+        employeeApi.getAllEmployees(),
+        departmentApi.getAllDepartments(),
+      ]);
       setEmployees(employeeData);
+      setDepartments(departmentData);
+      // Set default department for new employee
+      if (departmentData.length > 0) {
+        setNewEmployee((prev) => ({ ...prev, department: departmentData[0] }));
+      }
     } catch (error: any) {
       console.error("Failed to load data:", error);
       if (error.message?.includes("401")) {
@@ -76,16 +80,7 @@ export default function EmployeesPage() {
 
   const handleAddEmployee = async () => {
     try {
-      await employeeApi.createEmployee({
-        ...newEmployee,
-        department: { 
-          id: newEmployee.department.id,
-          name: newEmployee.department.name,
-          manager: newEmployee.department.manager,
-          createdDate: newEmployee.department.createdDate,
-          employeeCount: newEmployee.department.employeeCount
-        },
-      });
+      await employeeApi.createEmployee(newEmployee);
       await loadData();
       setIsAddDialogOpen(false);
       setNewEmployee({
@@ -93,7 +88,7 @@ export default function EmployeesPage() {
         lastName: "",
         email: "",
         phone: "",
-        department: departments[0],
+        department: departments[0] || { id: 0, name: "", manager: "", createdDate: "", employeeCount: 0 },
       });
     } catch (error: any) {
       console.error("Failed to add employee:", error);
@@ -108,18 +103,8 @@ export default function EmployeesPage() {
 
   const handleEditEmployee = async () => {
     if (!selectedEmployee) return;
-
     try {
-      await employeeApi.updateEmployee(selectedEmployee.id, {
-        ...selectedEmployee,
-        department: { 
-          id: selectedEmployee.department.id,
-          name: selectedEmployee.department.name,
-          manager: selectedEmployee.department.manager,
-          createdDate: selectedEmployee.department.createdDate,
-          employeeCount: selectedEmployee.department.employeeCount
-        },
-      });
+      await employeeApi.updateEmployee(selectedEmployee.id, selectedEmployee);
       await loadData();
       setIsEditDialogOpen(false);
     } catch (error: any) {
@@ -135,7 +120,6 @@ export default function EmployeesPage() {
 
   const handleDeleteEmployee = async () => {
     if (!selectedEmployee) return;
-
     try {
       await employeeApi.deleteEmployee(selectedEmployee.id);
       await loadData();
@@ -315,7 +299,7 @@ export default function EmployeesPage() {
               ) : (
                 filteredEmployees.map((employee) => (
                   <TableRow key={employee.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{`${employee.firstName} ${employee.lastName}`}</TableCell>
+                    <TableCell className="font-medium">{`${employee.firstName || (employee as any)["Firstnam"] || ''} ${employee.lastName || (employee as any)["Lastname"] || ''}`}</TableCell>
                     <TableCell>{employee.email}</TableCell>
                     <TableCell>{employee.phone}</TableCell>
                     <TableCell>{employee.department.name}</TableCell>
@@ -469,7 +453,7 @@ export default function EmployeesPage() {
                                 <div className="py-4">
                                   <p>
                                     You are about to delete{" "}
-                                    <strong>{`${selectedEmployee.firstName} ${selectedEmployee.lastName}`}</strong>.
+                                    <strong>{`${selectedEmployee.firstName || (selectedEmployee as any)["Firstnam"] || ''} ${selectedEmployee.lastName || (selectedEmployee as any)["Lastname"] || ''}`}</strong>.
                                   </p>
                                 </div>
                               )}

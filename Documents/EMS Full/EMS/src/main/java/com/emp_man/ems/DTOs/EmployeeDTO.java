@@ -1,31 +1,23 @@
-package com.emp_man.ems.Models;
+package com.emp_man.ems.DTOs;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
+import com.emp_man.ems.Models.Department;
 
-@Entity
-public class Employee {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class EmployeeDTO {
     private Long id;
-
-    @JsonProperty("firstName")
-    private String Firstname;
-
-    @JsonProperty("lastName")
-    private String Lastname;
-
+    private String firstName;
+    private String lastName;
     private String email;
     private String phone;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "department_id")
     private Department department;
+
+    public EmployeeDTO(Long id, String firstName, String lastName, String email, String phone, Department department) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phone = phone;
+        this.department = department;
+    }
 
     // Getters and Setters
     public Long getId() {
@@ -36,20 +28,20 @@ public class Employee {
         this.id = id;
     }
 
-    public String getFirstname() {
-        return Firstname;
+    public String getFirstName() {
+        return firstName;
     }
 
     public void setFirstName(String firstName) {
-        this.Firstname = firstName;
+        this.firstName = firstName;
     }
 
-    public String getLastname() {
-        return Lastname;
+    public String getLastName() {
+        return lastName;
     }
 
     public void setLastName(String lastName) {
-        this.Lastname = lastName; // Fixed bug
+        this.lastName = lastName;
     }
 
     public String getEmail() {
@@ -74,13 +66,5 @@ public class Employee {
 
     public void setDepartment(Department department) {
         this.department = department;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 }

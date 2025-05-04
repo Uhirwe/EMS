@@ -18,6 +18,10 @@ public class Attendance {
     @JoinColumn(name = "department_id")
     private Department department;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
     private LocalDate date;
     private String status;
 
@@ -36,6 +40,13 @@ public class Attendance {
 
     public void setEmployee(Employee employee) {
         this.employee = employee;
+    }
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public Department getDepartment() {

@@ -25,15 +25,16 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    @Cacheable(value = "users", key = "#email") // Caching with specific email key
+    @Cacheable(value = "users", key = "#email")
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        logger.info("Loading user from database: " + email);
+        logger.info("Loading user from database for email: " + email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
         GrantedAuthority authority = new SimpleGrantedAuthority(
                 "ROLE_" + user.getRole().toUpperCase().replace(" ", "_"));
 
+        logger.info("User loaded: " + email + ", role: " + user.getRole());
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),

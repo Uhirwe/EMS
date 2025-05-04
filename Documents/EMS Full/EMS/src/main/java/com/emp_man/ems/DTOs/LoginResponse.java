@@ -2,16 +2,22 @@ package com.emp_man.ems.DTOs;
 
 public class LoginResponse {
     private String token;
-    private String refreshToken;
+    private Long userId;
     private String email;
     private String firstName;
     private String lastName;
     private String role;
 
-    public LoginResponse(String token) {
+    public LoginResponse(String token, Long userId, String email, String firstName, String lastName, String role) {
         this.token = token;
+        this.userId = userId;
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.role = role;
     }
 
+    // Getters and Setters
     public String getToken() {
         return token;
     }
@@ -20,12 +26,12 @@ public class LoginResponse {
         this.token = token;
     }
 
-    public String getRefreshToken() {
-        return refreshToken;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getEmail() {

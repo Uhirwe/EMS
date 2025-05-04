@@ -127,13 +127,16 @@ export const employeeApi = {
       });
 
       if (!response.ok) {
-        console.error('Server response:', response.status, response.statusText);
-        throw new Error(
-          response.status === 401 ? '401: Unauthorized' : `Failed to delete employee: ${response.status} ${response.statusText}`,
-        );
+        if (response.status === 401) {
+          throw new Error('401: Unauthorized');
+        } else {
+          throw new Error(`Failed to delete employee: ${response.status} ${response.statusText}`);
+        }
       }
     } catch (error) {
-      console.error(`Error deleting employee with ID ${id}:`, error);
+      if (!(error instanceof Error && error.message.includes('401'))) {
+        console.error(`Error deleting employee with ID ${id}:`, error);
+      }
       throw error;
     }
   },

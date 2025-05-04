@@ -18,8 +18,9 @@ public class AttendanceController {
     }
 
     @GetMapping
-    public List<Attendance> getAllAttendances() {
-        return attendanceService.getAllAttendances();
+    public ResponseEntity<List<Attendance>> getAllAttendances() {
+        List<Attendance> attendances = attendanceService.getAllAttendances();
+        return ResponseEntity.ok(attendances);
     }
 
     @GetMapping("/{id}")
