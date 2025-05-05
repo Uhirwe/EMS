@@ -11,10 +11,10 @@ public class Employee {
     private Long id;
 
     @JsonProperty("firstName")
-    private String Firstname;
+    private String firstName;
 
     @JsonProperty("lastName")
-    private String Lastname;
+    private String lastName;
 
     private String email;
     private String phone;
@@ -36,20 +36,20 @@ public class Employee {
         this.id = id;
     }
 
-    public String getFirstname() {
-        return Firstname;
+    public String getFirstName() {
+        return firstName;
     }
 
     public void setFirstName(String firstName) {
-        this.Firstname = firstName;
+        this.firstName = firstName;
     }
 
-    public String getLastname() {
-        return Lastname;
+    public String getLastName() {
+        return lastName;
     }
 
     public void setLastName(String lastName) {
-        this.Lastname = lastName; // Fixed bug
+        this.lastName = lastName;
     }
 
     public String getEmail() {

@@ -92,3 +92,61 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes animated-gradient {
+  0% {
+    background: radial-gradient(circle at 60% 40%, #6366f1 0%, #06b6d4 40%, #1e293b 100%);
+  }
+  33% {
+    background: radial-gradient(circle at 40% 60%, #14b8a6 0%, #818cf8 40%, #334155 100%);
+  }
+  66% {
+    background: radial-gradient(circle at 60% 60%, #818cf8 0%, #06b6d4 40%, #1e293b 100%);
+  }
+  100% {
+    background: radial-gradient(circle at 60% 40%, #6366f1 0%, #06b6d4 40%, #1e293b 100%);
+  }
+}
+.animated-gradient-bg {
+  animation: animated-gradient 6s ease-in-out infinite;
+  background-size: 200% 200%;
+}
+@keyframes pulse-shield {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px #6366f1aa); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 24px #818cf8cc); }
+}
+.pulse-shield {
+  animation: pulse-shield 2.5s infinite;
+}
+@keyframes border-animate-1 {
+  0% { border-color: #6366f1; }
+  25% { border-color: #06b6d4; }
+  50% { border-color: #14b8a6; }
+  75% { border-color: #818cf8; }
+  100% { border-color: #6366f1; }
+}
+@keyframes border-animate-2 {
+  0% { border-color: #06b6d4; }
+  25% { border-color: #14b8a6; }
+  50% { border-color: #818cf8; }
+  75% { border-color: #6366f1; }
+  100% { border-color: #06b6d4; }
+}
+@keyframes border-animate-3 {
+  0% { border-color: #14b8a6; }
+  25% { border-color: #818cf8; }
+  50% { border-color: #6366f1; }
+  75% { border-color: #06b6d4; }
+  100% { border-color: #14b8a6; }
+}
+.animated-border-1 {
+  animation: border-animate-1 4s ease-in-out infinite;
+}
+.animated-border-2 {
+  animation: border-animate-2 4s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+.animated-border-3 {
+  animation: border-animate-3 4s ease-in-out infinite;
+  animation-delay: 2.4s;
+}

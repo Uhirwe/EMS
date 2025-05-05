@@ -144,18 +144,18 @@ export default function EmployeesPage() {
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
               <Upload className="mr-2 h-4 w-4" />
               Import
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+              <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Employee
               </Button>
@@ -237,7 +237,7 @@ export default function EmployeesPage() {
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleAddEmployee} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={handleAddEmployee} className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold">
                   Add Employee
                 </Button>
               </DialogFooter>
@@ -275,12 +275,12 @@ export default function EmployeesPage() {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
         </div>
       ) : (
         <div className="rounded-md border shadow-sm">
           <Table>
-            <TableHeader className="bg-muted/50">
+            <TableHeader className="bg-gray-900 text-yellow-500">
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
@@ -298,8 +298,8 @@ export default function EmployeesPage() {
                 </TableRow>
               ) : (
                 filteredEmployees.map((employee) => (
-                  <TableRow key={employee.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{`${employee.firstName || (employee as any)["Firstnam"] || ''} ${employee.lastName || (employee as any)["Lastname"] || ''}`}</TableCell>
+                  <TableRow key={employee.id} className="hover:bg-yellow-600/10 text-yellow-500">
+                    <TableCell className="font-medium text-yellow-500">{`${employee.firstName || (employee as any)["Firstnam"] || ''} ${employee.lastName || (employee as any)["Lastname"] || ''}`}</TableCell>
                     <TableCell>{employee.email}</TableCell>
                     <TableCell>{employee.phone}</TableCell>
                     <TableCell>{employee.department.name}</TableCell>
@@ -423,7 +423,7 @@ export default function EmployeesPage() {
                                 <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                                   Cancel
                                 </Button>
-                                <Button onClick={handleEditEmployee} className="bg-blue-600 hover:bg-blue-700">
+                                <Button onClick={handleEditEmployee} className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold">
                                   Save Changes
                                 </Button>
                               </DialogFooter>

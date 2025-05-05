@@ -20,19 +20,15 @@ public class EmployeeService {
         this.authService = authService;
     }
 
+    // Always return employees created by the current user, regardless of role
     public List<EmployeeDTO> getAllEmployees() {
         User user = authService.getCurrentUser();
-        List<Employee> employees;
-        if (user.getRole().equals("HR Administrator")) {
-            employees = employeeRepository.findAll();
-        } else {
-            employees = employeeRepository.findByUserId(user.getId());
-        }
+        List<Employee> employees = employeeRepository.findByUserId(user.getId());
         return employees.stream()
                 .map(employee -> new EmployeeDTO(
                         employee.getId(),
-                        employee.getFirstname(),
-                        employee.getLastname(),
+                        employee.getFirstName(),
+                        employee.getLastName(),
                         employee.getEmail(),
                         employee.getPhone(),
                         employee.getDepartment()
@@ -42,21 +38,17 @@ public class EmployeeService {
 
     public EmployeeDTO getEmployeeById(Long id) {
         User user = authService.getCurrentUser();
-        Employee employee;
-        if (user.getRole().equals("HR Administrator")) {
-            employee = employeeRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Employee not found"));
-        } else {
-            employee = employeeRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Employee not found"));
-            if (!employee.getUser().getId().equals(user.getId())) {
-                throw new IllegalAccessError("Unauthorized access to employee record");
-            }
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        if (!employee.getUser().getId().equals(user.getId())) {
+            throw new IllegalAccessError("Unauthorized access to employee record");
         }
+
         return new EmployeeDTO(
                 employee.getId(),
-                employee.getFirstname(),
-                employee.getLastname(),
+                employee.getFirstName(),
+                employee.getLastName(),
                 employee.getEmail(),
                 employee.getPhone(),
                 employee.getDepartment()
@@ -72,11 +64,12 @@ public class EmployeeService {
         employee.setPhone(employeeDTO.getPhone());
         employee.setDepartment(employeeDTO.getDepartment());
         employee.setUser(user);
+
         Employee savedEmployee = employeeRepository.save(employee);
         return new EmployeeDTO(
                 savedEmployee.getId(),
-                savedEmployee.getFirstname(),
-                savedEmployee.getLastname(),
+                savedEmployee.getFirstName(),
+                savedEmployee.getLastName(),
                 savedEmployee.getEmail(),
                 savedEmployee.getPhone(),
                 savedEmployee.getDepartment()
@@ -85,27 +78,24 @@ public class EmployeeService {
 
     public EmployeeDTO updateEmployee(Long id, EmployeeDTO employeeDTO) {
         User user = authService.getCurrentUser();
-        Employee employee;
-        if (user.getRole().equals("HR Administrator")) {
-            employee = employeeRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Employee not found"));
-        } else {
-            employee = employeeRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Employee not found"));
-            if (!employee.getUser().getId().equals(user.getId())) {
-                throw new IllegalAccessError("Unauthorized access to employee record");
-            }
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        if (!employee.getUser().getId().equals(user.getId())) {
+            throw new IllegalAccessError("Unauthorized access to employee record");
         }
+
         employee.setFirstName(employeeDTO.getFirstName());
         employee.setLastName(employeeDTO.getLastName());
         employee.setEmail(employeeDTO.getEmail());
         employee.setPhone(employeeDTO.getPhone());
         employee.setDepartment(employeeDTO.getDepartment());
+
         Employee updatedEmployee = employeeRepository.save(employee);
         return new EmployeeDTO(
                 updatedEmployee.getId(),
-                updatedEmployee.getFirstname(),
-                updatedEmployee.getLastname(),
+                updatedEmployee.getFirstName(),
+                updatedEmployee.getLastName(),
                 updatedEmployee.getEmail(),
                 updatedEmployee.getPhone(),
                 updatedEmployee.getDepartment()
@@ -114,17 +104,13 @@ public class EmployeeService {
 
     public void deleteEmployee(Long id) {
         User user = authService.getCurrentUser();
-        Employee employee;
-        if (user.getRole().equals("HR Administrator")) {
-            employee = employeeRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Employee not found"));
-        } else {
-            employee = employeeRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Employee not found"));
-            if (!employee.getUser().getId().equals(user.getId())) {
-                throw new IllegalAccessError("Unauthorized access to employee record");
-            }
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        if (!employee.getUser().getId().equals(user.getId())) {
+            throw new IllegalAccessError("Unauthorized access to employee record");
         }
+
         employeeRepository.delete(employee);
     }
 }

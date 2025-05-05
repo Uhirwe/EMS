@@ -172,16 +172,7 @@ export default function DashboardPage() {
   };
 
   const getActivityColor = (type: RecentActivity['type']) => {
-    switch (type) {
-      case 'EMPLOYEE':
-        return 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-300';
-      case 'LEAVE':
-        return 'bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-300';
-      case 'SALARY':
-        return 'bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-300';
-      case 'DEPARTMENT':
-        return 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-300';
-    }
+    return 'bg-yellow-500 text-black';
   };
 
   return (
@@ -194,7 +185,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button className="bg-purple-600 hover:bg-purple-700" onClick={loadDashboardData}>
+          <Button className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold" onClick={loadDashboardData}>
             <TrendingUp className="mr-2 h-4 w-4" />
             Refresh Data
           </Button>
@@ -213,76 +204,76 @@ export default function DashboardPage() {
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-blue-500 shadow-md hover:shadow-lg transition-shadow">
+        <Card className="border-l-4 border-l-pink-500 shadow-md hover:shadow-lg transition-shadow bg-black text-yellow-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
-            <Users className="h-4 w-4 text-blue-500" />
+            <CardTitle className="text-sm font-medium text-yellow-500">Total Employees</CardTitle>
+            <Users className="h-4 w-4 text-pink-500" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-gray-200 rounded"></div>
+              <div className="animate-pulse h-8 w-16 bg-gray-800 rounded"></div>
             ) : (
-              <div className="text-2xl font-bold">{totalEmployees}</div>
+              <div className="text-2xl font-bold text-yellow-500">{totalEmployees}</div>
             )}
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-purple-500 shadow-md hover:shadow-lg transition-shadow">
+        <Card className="border-l-4 border-l-red-500 shadow-md hover:shadow-lg transition-shadow bg-black text-yellow-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Departments</CardTitle>
-            <Building className="h-4 w-4 text-purple-500" />
+            <CardTitle className="text-sm font-medium text-yellow-500">Departments</CardTitle>
+            <Building className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-gray-200 rounded"></div>
+              <div className="animate-pulse h-8 w-16 bg-gray-800 rounded"></div>
             ) : (
-              <div className="text-2xl font-bold">{totalDepartments}</div>
+              <div className="text-2xl font-bold text-yellow-500">{totalDepartments}</div>
             )}
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-teal-500 shadow-md hover:shadow-lg transition-shadow">
+        <Card className="border-l-4 border-l-teal-500 shadow-md hover:shadow-lg transition-shadow bg-black text-yellow-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Attendance Rate</CardTitle>
+            <CardTitle className="text-sm font-medium text-yellow-500">Attendance Rate</CardTitle>
             <Clock className="h-4 w-4 text-teal-500" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-gray-200 rounded"></div>
+              <div className="animate-pulse h-8 w-16 bg-gray-800 rounded"></div>
             ) : (
-              <div className="text-2xl font-bold">{attendanceRate.toFixed(1)}%</div>
+              <div className="text-2xl font-bold text-yellow-500">{attendanceRate.toFixed(1)}%</div>
             )}
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-amber-500 shadow-md hover:shadow-lg transition-shadow">
+        <Card className="border-l-4 border-l-yellow-500 shadow-md hover:shadow-lg transition-shadow bg-black text-yellow-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Leaves</CardTitle>
-            <Calendar className="h-4 w-4 text-amber-500" />
+            <CardTitle className="text-sm font-medium text-yellow-500">Pending Leaves</CardTitle>
+            <Calendar className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-gray-200 rounded"></div>
+              <div className="animate-pulse h-8 w-16 bg-gray-800 rounded"></div>
             ) : (
-              <div className="text-2xl font-bold">{pendingLeaves}</div>
+              <div className="text-2xl font-bold text-yellow-500">{pendingLeaves}</div>
             )}
           </CardContent>
         </Card>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="shadow-md hover:shadow-lg transition-shadow">
-          <CardHeader className="bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-950/20 dark:to-emerald-950/20 rounded-t-lg">
-            <CardTitle>Recent Activities</CardTitle>
-            <CardDescription>Latest updates and activities</CardDescription>
+        <Card className="shadow-md hover:shadow-lg transition-shadow bg-black text-yellow-500">
+          <CardHeader className="bg-gray-900 rounded-t-lg">
+            <CardTitle className="text-yellow-500">Recent Activities</CardTitle>
+            <CardDescription className="text-gray-400">Latest updates and activities</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="flex items-center gap-4">
-                    <div className="animate-pulse rounded-full h-8 w-8 bg-gray-200"></div>
+                    <div className="animate-pulse rounded-full h-8 w-8 bg-gray-800"></div>
                     <div className="space-y-2 flex-1">
-                      <div className="animate-pulse h-4 w-24 bg-gray-200 rounded"></div>
-                      <div className="animate-pulse h-3 w-32 bg-gray-200 rounded"></div>
-                      <div className="animate-pulse h-3 w-16 bg-gray-200 rounded"></div>
+                      <div className="animate-pulse h-4 w-24 bg-gray-800 rounded"></div>
+                      <div className="animate-pulse h-3 w-32 bg-gray-800 rounded"></div>
+                      <div className="animate-pulse h-3 w-16 bg-gray-800 rounded"></div>
                     </div>
                   </div>
                 ))}
@@ -311,44 +302,43 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
-        <Card className="shadow-md hover:shadow-lg transition-shadow">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-t-lg">
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common tasks and operations</CardDescription>
+        <Card className="shadow-md hover:shadow-lg transition-shadow bg-black text-yellow-500">
+          <CardHeader className="bg-gray-900 rounded-t-lg">
+            <CardTitle className="text-yellow-500">Quick Actions</CardTitle>
+            <CardDescription className="text-gray-400">Common tasks and operations</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
               <Link href="/dashboard/employees">
-                <Button variant="outline" className="w-full justify-start">
-                  <Users className="mr-2 h-4 w-4" />
+                <Button variant="outline" className="w-full justify-start bg-gray-900 border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
+                  <Users className="mr-2 h-4 w-4 text-yellow-500" />
                   Manage Employees
                 </Button>
               </Link>
               <Link href="/dashboard/departments">
-                <Button variant="outline" className="w-full justify-start">
-                  <Building className="mr-2 h-4 w-4" />
+                <Button variant="outline" className="w-full justify-start bg-gray-900 border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
+                  <Building className="mr-2 h-4 w-4 text-yellow-500" />
                   Manage Departments
                 </Button>
               </Link>
               <Link href="/dashboard/attendance">
-                <Button variant="outline" className="w-full justify-start">
-                  <Clock className="mr-2 h-4 w-4" />
+                <Button variant="outline" className="w-full justify-start bg-gray-900 border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
+                  <Clock className="mr-2 h-4 w-4 text-yellow-500" />
                   Manage Attendance
                 </Button>
               </Link>
               <Link href="/dashboard/leave-requests">
-                <Button variant="outline" className="w-full justify-start">
-                  <Calendar className="mr-2 h-4 w-4" />
+                <Button variant="outline" className="w-full justify-start bg-gray-900 border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
+                  <Calendar className="mr-2 h-4 w-4 text-yellow-500" />
                   Manage Leave Requests
                 </Button>
               </Link>
               <Link href="/dashboard/salary">
-                <Button variant="outline" className="w-full justify-start">
-                  <CreditCard className="mr-2 h-4 w-4" />
+                <Button variant="outline" className="w-full justify-start bg-gray-900 border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
+                  <CreditCard className="mr-2 h-4 w-4 text-yellow-500" />
                   Manage Salary
                 </Button>
               </Link>
-             
             </div>
           </CardContent>
         </Card>

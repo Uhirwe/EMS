@@ -16,7 +16,7 @@ public class Department {
     private String description;
     private LocalDate createdDate;
     private int employeeCount;
-    // NEW FIELD
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -52,11 +52,12 @@ public class Department {
         return employeeCount;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
     public User getUser() {
         return user;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public void setUser(User user) {

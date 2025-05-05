@@ -5,15 +5,16 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Users } from "lucide-react"
+import { Shield } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 
-export default function SignupPage() {
+export default function SignUpPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -84,90 +85,140 @@ const mapRole = (val: string) => {
 }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
-      <Link href="/" className="absolute left-8 top-8 flex items-center gap-2 font-bold md:left-12 md:top-12">
-        <Users className="h-6 w-6" />
-        <span>EmpowerHR</span>
-      </Link>
-
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
-          <CardDescription>Enter your information to create your account</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" name="firstName" required value={formData.firstName} onChange={handleChange} />
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-black via-gray-900 to-black">
+      <div className="container relative flex h-screen flex-col items-center justify-center">
+        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[400px]">
+          <div className="flex flex-col space-y-2 text-center">
+            <div className="flex items-center justify-center">
+              <Shield className="h-12 w-12 text-yellow-500" />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-yellow-500">
+              Create an account
+            </h1>
+            <p className="text-sm text-gray-300">
+              Enter your details to get started with EmpTrack
+            </p>
+          </div>
+          <div className="grid gap-6">
+            <form onSubmit={handleSubmit}>
+              <div className="grid gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="firstName" className="text-gray-300">First name</Label>
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      placeholder="John"
+                      autoCapitalize="none"
+                      autoComplete="given-name"
+                      autoCorrect="off"
+                      className="bg-black border-gray-700 text-gray-100 focus:border-yellow-500 focus:ring-yellow-500"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="lastName" className="text-gray-300">Last name</Label>
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      placeholder="Doe"
+                      autoCapitalize="none"
+                      autoComplete="family-name"
+                      autoCorrect="off"
+                      className="bg-black border-gray-700 text-gray-100 focus:border-yellow-500 focus:ring-yellow-500"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="email" className="text-gray-300">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    placeholder="name@example.com"
+                    type="email"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    autoCorrect="off"
+                    className="bg-black border-gray-700 text-gray-100 focus:border-yellow-500 focus:ring-yellow-500"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="role" className="text-gray-300">Role</Label>
+                  <Select value={formData.role} onValueChange={handleRoleChange}>
+                    <SelectTrigger className="bg-black border-gray-700 text-gray-100 focus:border-yellow-500 focus:ring-yellow-500">
+                      <SelectValue placeholder="Select your role" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black border-gray-700">
+                      <SelectItem value="hr_admin" className="text-gray-100 hover:bg-gray-800">HR Administrator</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="password" className="text-gray-300">Password</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    className="bg-black border-gray-700 text-gray-100 focus:border-yellow-500 focus:ring-yellow-500"
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="confirmPassword" className="text-gray-300">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    className="bg-black border-gray-700 text-gray-100 focus:border-yellow-500 focus:ring-yellow-500"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="terms" className="border-gray-700 data-[state=checked]:bg-yellow-500 data-[state=checked]:border-yellow-500" />
+                  <label
+                    htmlFor="terms"
+                    className="text-sm font-medium text-gray-300"
+                  >
+                    I agree to the{" "}
+                    <Link href="/terms" className="text-yellow-500 hover:text-yellow-400 underline underline-offset-4">
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link href="/privacy" className="text-yellow-500 hover:text-yellow-400 underline underline-offset-4">
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </div>
+                <Button 
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold" 
+                  type="submit" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Creating account..." : "Create Account"}
+                </Button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" name="lastName" required value={formData.lastName} onChange={handleChange} />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="name@example.com"
-                required
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select value={formData.role} onValueChange={handleRoleChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="hr_admin">HR Administrator</SelectItem>
-                  <SelectItem value="manager">Department Manager</SelectItem>
-                  <SelectItem value="employee">Employee</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                value={formData.confirmPassword}
-                onChange={handleChange}
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Create Account"}
-            </Button>
-            <div className="text-center text-sm">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="font-medium text-primary hover:underline">
-                Login
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
+            </form>
+          </div>
+          <p className="px-8 text-center text-sm text-gray-400">
+            Already have an account?{" "}
+            <Link
+              href="/auth/login"
+              className="text-yellow-500 hover:text-yellow-400 underline underline-offset-4"
+            >
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   )
 }
