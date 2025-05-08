@@ -6,6 +6,7 @@ const TOKEN_COOKIE = 'auth_token'
 const USER_COOKIE = 'user_data'
 
 export const authService = {
+
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
@@ -23,26 +24,26 @@ export const authService = {
     const data = await response.json()
     
     // Set cookies using Next.js cookies API
-    const cookieStore = cookies()
-    ;(await cookieStore).set(TOKEN_COOKIE, data.token, {
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7 // 7 days
-    })
+    // const cookieStore = cookies()
+    // ;(await cookieStore).set(TOKEN_COOKIE, data.token, {
+    //   secure: process.env.NODE_ENV === 'production',
+    //   sameSite: 'strict',
+    //   maxAge: 60 * 60 * 24 * 7 // 7 days
+    // })
     
-    ;(await cookieStore).set(USER_COOKIE, JSON.stringify(data.user), {
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7
-    })
+    // ;(await cookieStore).set(USER_COOKIE, JSON.stringify(data.user), {
+    //   secure: process.env.NODE_ENV === 'production',
+    //   sameSite: 'strict',
+    //   maxAge: 60 * 60 * 24 * 7
+    // })
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", data.userId);
 
     return data
   },
 
   async logout(): Promise<void> {
-    const cookieStore = await cookies()
-    cookieStore.delete(TOKEN_COOKIE)
-    cookieStore.delete(USER_COOKIE)
+    localStorage.clear();
   },
 
   async getToken(): Promise<string | undefined> {

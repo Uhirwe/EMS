@@ -55,12 +55,14 @@ export default function LoginPage() {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.message || "Login failed");
       }
-
+    console.log("this is the login response before json: "+res)
       const data = await res.json()
+      const newdata = JSON.stringify(data)
+      console.log("this is the login data:", newdata)
       if (data.token) {
         localStorage.setItem("token", data.token)
-        if (data.user) {
-          localStorage.setItem("user", JSON.stringify(data.user));
+        if (data.userId) {
+          localStorage.setItem("user", data.userId);
         }
         router.push("/dashboard/employees")
       } else {

@@ -49,6 +49,26 @@ export const employeeApi = {
       throw error;
     }
   },
+  async getAllEmployeesByUserId(userId: number): Promise<Employee[]> {
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/employees/user/${userId}`, {
+        method: 'GET',
+        headers: getHeaders(),
+      });
+
+      if (!response.ok) {
+        console.error('Server response:', response.status, response.statusText);
+        throw new Error(
+          response.status === 401 ? '401: Unauthorized' : `Failed to fetch employees: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+      throw error;
+    }
+  },
 
   // Get a single employee by ID
   async getEmployeeById(id: number): Promise<Employee> {
@@ -151,6 +171,7 @@ export const departmentApi = {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch departments');
     }
+    console.log("this is the department data: "+JSON.stringify(response))
     return response.json();
   },
 
@@ -196,9 +217,10 @@ export const departmentApi = {
       method: 'DELETE',
       headers: getHeaders()
     });
+    
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to delete department');
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to delete department');
     }
   },
 

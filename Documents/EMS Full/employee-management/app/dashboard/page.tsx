@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { employeeApi, departmentApi, attendanceApi, leaveRequestApi, salaryApi } from "@/lib/api/employee"
 import { formatDistanceToNow } from "date-fns"
 import { Employee, Department, Attendance, LeaveRequest, Salary } from "@/types/employee"
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface User {
   firstName: string;
@@ -32,6 +33,12 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [departmentData, setDepartmentData] = useState<{ name: string; value: number }[]>([]);
+  const [attendanceData, setAttendanceData] = useState<{ date: string; present: number }[]>([]);
+  const [salaryData, setSalaryData] = useState<{ range: string; count: number }[]>([]);
+  const [leaveData, setLeaveData] = useState<{ status: string; value: number }[]>([]);
+
+  const COLORS = ['#FFB800', '#FF4B91', '#FF6B6B', '#4ECDC4'];
 
   useEffect(() => {
     loadDashboardData();
@@ -87,6 +94,58 @@ export default function DashboardPage() {
       // Count pending leave requests
       const pendingCount = leaveRequests.filter((lr: LeaveRequest) => lr.status === 'PENDING').length;
       setPendingLeaves(pendingCount);
+
+      // Prepare department distribution data
+      const deptDistribution = departments.map(dept => ({
+        name: dept.name,
+        value: employees.filter(emp => emp.department.id === dept.id).length
+      }));
+      setDepartmentData(deptDistribution);
+
+      // Prepare attendance trend data (last 7 days)
+      const last7Days = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        return date.toISOString().split('T')[0];
+      }).reverse();
+
+      const attendanceTrend = last7Days.map(date => ({
+        date: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }),
+        present: attendances.filter((a: Attendance) => 
+          a.date.startsWith(date) && a.status === 'PRESENT'
+        ).length
+      }));
+      setAttendanceData(attendanceTrend);
+
+      // Prepare salary distribution data
+      const salaryRanges = [
+        { min: 0, max: 50000, label: '0-50k' },
+        { min: 50000, max: 100000, label: '50k-100k' },
+        { min: 100000, max: 150000, label: '100k-150k' },
+        { min: 150000, max: Infinity, label: '150k+' }
+      ];
+
+      const salaryDistribution = salaryRanges.map(range => ({
+        range: range.label,
+        count: salaries.filter((s: Salary) => 
+          s.basicSalary >= range.min && s.basicSalary < range.max
+        ).length
+      }));
+      setSalaryData(salaryDistribution);
+
+      // Prepare leave request status data
+      const leaveStatusCount = {
+        PENDING: leaveRequests.filter((lr: LeaveRequest) => lr.status === 'PENDING').length,
+        APPROVED: leaveRequests.filter((lr: LeaveRequest) => lr.status === 'APPROVED').length,
+        REJECTED: leaveRequests.filter((lr: LeaveRequest) => lr.status === 'REJECTED').length,
+        CANCELLED: leaveRequests.filter((lr: LeaveRequest) => lr.status === 'CANCELLED').length
+      };
+
+      const leaveDistribution = Object.entries(leaveStatusCount).map(([status, value]) => ({
+        status,
+        value
+      }));
+      setLeaveData(leaveDistribution);
 
       // Prepare recent activities
       const activities: RecentActivity[] = [];
@@ -177,20 +236,20 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-yellow-600 bg-white px-4 md:px-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">Dashboard</h2>
+          <p className="text-gray-700">
             {user ? `Welcome back, ${user.firstName} ${user.lastName}!` : 'Welcome back!'} Here&apos;s an overview of your organization.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold" onClick={loadDashboardData}>
+          <Button className="bg-yellow-400 hover:bg-[#FFB800]/90 text-black font-semibold" onClick={loadDashboardData}>
             <TrendingUp className="mr-2 h-4 w-4" />
             Refresh Data
           </Button>
         </div>
-      </div>
+      </header>
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
@@ -204,65 +263,187 @@ export default function DashboardPage() {
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-pink-500 shadow-md hover:shadow-lg transition-shadow bg-black text-yellow-500">
+        <Card className="border-l-4 border-l-[#FFB800] shadow-md hover:shadow-lg transition-shadow bg-white text-gray-900">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-500">Total Employees</CardTitle>
-            <Users className="h-4 w-4 text-pink-500" />
+            <CardTitle className="text-sm font-medium text-gray-900">Total Employees</CardTitle>
+            <Users className="h-4 w-4 text-[#FFB800]" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="animate-pulse h-8 w-16 bg-gray-800 rounded"></div>
             ) : (
-              <div className="text-2xl font-bold text-yellow-500">{totalEmployees}</div>
+              <div className="text-2xl font-bold text-gray-900">{totalEmployees}</div>
             )}
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-red-500 shadow-md hover:shadow-lg transition-shadow bg-black text-yellow-500">
+        <Card className="border-l-4 border-l-[#FF4B91] shadow-md hover:shadow-lg transition-shadow bg-white text-gray-900">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-500">Departments</CardTitle>
-            <Building className="h-4 w-4 text-red-500" />
+            <CardTitle className="text-sm font-medium text-gray-900">Departments</CardTitle>
+            <Building className="h-4 w-4 text-[#FF4B91]" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="animate-pulse h-8 w-16 bg-gray-800 rounded"></div>
             ) : (
-              <div className="text-2xl font-bold text-yellow-500">{totalDepartments}</div>
+              <div className="text-2xl font-bold text-gray-900">{totalDepartments}</div>
             )}
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-teal-500 shadow-md hover:shadow-lg transition-shadow bg-black text-yellow-500">
+        <Card className="border-l-4 border-l-[#4ECDC4] shadow-md hover:shadow-lg transition-shadow bg-white text-gray-900">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-500">Attendance Rate</CardTitle>
-            <Clock className="h-4 w-4 text-teal-500" />
+            <CardTitle className="text-sm font-medium text-gray-900">Attendance Rate</CardTitle>
+            <Clock className="h-4 w-4 text-[#4ECDC4]" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="animate-pulse h-8 w-16 bg-gray-800 rounded"></div>
             ) : (
-              <div className="text-2xl font-bold text-yellow-500">{attendanceRate.toFixed(1)}%</div>
+              <div className="text-2xl font-bold text-gray-900">{attendanceRate.toFixed(1)}%</div>
             )}
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-yellow-500 shadow-md hover:shadow-lg transition-shadow bg-black text-yellow-500">
+        <Card className="border-l-4 border-l-[#FF6B6B] shadow-md hover:shadow-lg transition-shadow bg-white text-gray-900">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-500">Pending Leaves</CardTitle>
-            <Calendar className="h-4 w-4 text-yellow-500" />
+            <CardTitle className="text-sm font-medium text-gray-900">Pending Leaves</CardTitle>
+            <Calendar className="h-4 w-4 text-[#FF6B6B]" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="animate-pulse h-8 w-16 bg-gray-800 rounded"></div>
             ) : (
-              <div className="text-2xl font-bold text-yellow-500">{pendingLeaves}</div>
+              <div className="text-2xl font-bold text-gray-900">{pendingLeaves}</div>
             )}
           </CardContent>
         </Card>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="shadow-md hover:shadow-lg transition-shadow bg-black text-yellow-500">
-          <CardHeader className="bg-gray-900 rounded-t-lg">
-            <CardTitle className="text-yellow-500">Recent Activities</CardTitle>
-            <CardDescription className="text-gray-400">Latest updates and activities</CardDescription>
+        <Card className="shadow-md hover:shadow-lg transition-shadow bg-gray-50 text-gray-900 border border-gray-200">
+          <CardHeader className="bg-gray-100 rounded-t-lg">
+            <CardTitle className="text-gray-900">Department Distribution</CardTitle>
+            <CardDescription className="text-gray-700">Employee count by department</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFB800]"></div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={departmentData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {departmentData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-md hover:shadow-lg transition-shadow bg-gray-50 text-gray-900 border border-gray-200">
+          <CardHeader className="bg-gray-100 rounded-t-lg">
+            <CardTitle className="text-gray-900">Attendance Trend</CardTitle>
+            <CardDescription className="text-gray-700">Last 7 days attendance</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4B91]"></div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={attendanceData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                  <XAxis dataKey="date" stroke="#888" />
+                  <YAxis stroke="#888" />
+                  <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }} />
+                  <Legend />
+                  <Line type="monotone" dataKey="present" stroke="#FF4B91" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-md hover:shadow-lg transition-shadow bg-gray-50 text-gray-900 border border-gray-200">
+          <CardHeader className="bg-gray-100 rounded-t-lg">
+            <CardTitle className="text-gray-900">Salary Distribution</CardTitle>
+            <CardDescription className="text-gray-700">Employee count by salary range</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4ECDC4]"></div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={salaryData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                  <XAxis dataKey="range" stroke="#888" />
+                  <YAxis stroke="#888" />
+                  <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }} />
+                  <Legend />
+                  <Bar dataKey="count" fill="#4ECDC4" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-md hover:shadow-lg transition-shadow bg-gray-50 text-gray-900 border border-gray-200">
+          <CardHeader className="bg-gray-100 rounded-t-lg">
+            <CardTitle className="text-gray-900">Leave Requests</CardTitle>
+            <CardDescription className="text-gray-700">Status distribution</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF6B6B]"></div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={leaveData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ status, percent }) => `${status} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {leaveData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="shadow-md hover:shadow-lg transition-shadow bg-gray-50 text-gray-900 border border-gray-200">
+          <CardHeader className="bg-gray-100 rounded-t-lg">
+            <CardTitle className="text-gray-900">Recent Activities</CardTitle>
+            <CardDescription className="text-gray-700">Latest updates and activities</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -302,41 +483,35 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
-        <Card className="shadow-md hover:shadow-lg transition-shadow bg-black text-yellow-500">
-          <CardHeader className="bg-gray-900 rounded-t-lg">
-            <CardTitle className="text-yellow-500">Quick Actions</CardTitle>
-            <CardDescription className="text-gray-400">Common tasks and operations</CardDescription>
+        <Card className="shadow-md hover:shadow-lg transition-shadow bg-yellow-50 text-gray-900 border border-yellow-200">
+          <CardHeader className="bg-yellow-100 rounded-t-lg">
+            <CardTitle className="text-gray-900">Quick Actions</CardTitle>
+            <CardDescription className="text-gray-700">Common tasks and operations</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
               <Link href="/dashboard/employees">
-                <Button variant="outline" className="w-full justify-start bg-gray-900 border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
+                <Button variant="outline" className="w-full justify-start bg-white border-yellow-400 text-gray-900 hover:bg-yellow-400 hover:text-gray-900">
                   <Users className="mr-2 h-4 w-4 text-yellow-500" />
                   Manage Employees
                 </Button>
               </Link>
               <Link href="/dashboard/departments">
-                <Button variant="outline" className="w-full justify-start bg-gray-900 border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
-                  <Building className="mr-2 h-4 w-4 text-yellow-500" />
+                <Button variant="outline" className="w-full justify-start bg-white border-pink-300 text-gray-900 hover:bg-pink-200 hover:text-gray-900">
+                  <Building className="mr-2 h-4 w-4 text-pink-400" />
                   Manage Departments
                 </Button>
               </Link>
               <Link href="/dashboard/attendance">
-                <Button variant="outline" className="w-full justify-start bg-gray-900 border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
-                  <Clock className="mr-2 h-4 w-4 text-yellow-500" />
+                <Button variant="outline" className="w-full justify-start bg-white border-teal-300 text-gray-900 hover:bg-teal-200 hover:text-gray-900">
+                  <Clock className="mr-2 h-4 w-4 text-teal-400" />
                   Manage Attendance
                 </Button>
               </Link>
               <Link href="/dashboard/leave-requests">
-                <Button variant="outline" className="w-full justify-start bg-gray-900 border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
-                  <Calendar className="mr-2 h-4 w-4 text-yellow-500" />
+                <Button variant="outline" className="w-full justify-start bg-white border-red-300 text-gray-900 hover:bg-red-200 hover:text-gray-900">
+                  <Calendar className="mr-2 h-4 w-4 text-red-400" />
                   Manage Leave Requests
-                </Button>
-              </Link>
-              <Link href="/dashboard/salary">
-                <Button variant="outline" className="w-full justify-start bg-gray-900 border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
-                  <CreditCard className="mr-2 h-4 w-4 text-yellow-500" />
-                  Manage Salary
                 </Button>
               </Link>
             </div>

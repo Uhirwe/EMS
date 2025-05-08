@@ -1,6 +1,6 @@
 package com.emp_man.ems.Models;
-
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 
 @Entity
@@ -13,14 +13,6 @@ public class Attendance {
     @ManyToOne
     @JoinColumn(name = "employee_id")
     private Employee employee;
-
-    @ManyToOne
-    @JoinColumn(name = "department_id")
-    private Department department;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
 
     private LocalDate date;
     private String status;
@@ -40,21 +32,6 @@ public class Attendance {
 
     public void setEmployee(Employee employee) {
         this.employee = employee;
-    }
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Department getDepartment() {
-        return department;
-    }
-
-    public void setDepartment(Department department) {
-        this.department = department;
     }
 
     public LocalDate getDate() {

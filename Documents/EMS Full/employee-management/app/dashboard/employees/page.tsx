@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Download, Edit, MoreHorizontal, Plus, Search, Trash, Upload } from "lucide-react";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +34,7 @@ export default function EmployeesPage() {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const [newEmployee, setNewEmployee] = useState<Omit<Employee, "id">>({
     firstName: "",
     lastName: "",
@@ -49,11 +52,12 @@ export default function EmployeesPage() {
     setError(null);
     try {
       const [employeeData, departmentData] = await Promise.all([
-        employeeApi.getAllEmployees(),
+        employeeApi.getAllEmployeesByUserId(Number(localStorage.getItem("user"))),
         departmentApi.getAllDepartments(),
       ]);
       setEmployees(employeeData);
       setDepartments(departmentData);
+      console.log("this is the employee data: "+departmentData)
       // Set default department for new employee
       if (departmentData.length > 0) {
         setNewEmployee((prev) => ({ ...prev, department: departmentData[0] }));
@@ -63,7 +67,11 @@ export default function EmployeesPage() {
       if (error.message?.includes("401")) {
         setError("Authentication required. Please log in.");
         router.push("/auth/login");
-      } else {
+      }else if(error.message?.includes("404")){
+        setWarning("No employees found. Add some employees to get started.");
+        router.push("/dashboard/employees");
+      }
+      else {
         setError("Failed to load data. Please try again later.");
       }
     } finally {
@@ -135,6 +143,22 @@ export default function EmployeesPage() {
     }
   };
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Employee Records", 14, 16);
+    doc.autoTable({
+      startY: 20,
+      head: [["Name", "Email", "Phone", "Department"]],
+      body: employees.map(emp => [
+        `${emp.firstName} ${emp.lastName}`,
+        emp.email,
+        emp.phone,
+        emp.department.name
+      ]),
+    });
+    doc.save("employees.pdf");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -144,18 +168,15 @@ export default function EmployeesPage() {
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
-              <Upload className="mr-2 h-4 w-4" />
-              Import
-            </Button>
-            <Button variant="outline" size="sm" className="border-yellow-600 text-yellow-500 hover:bg-yellow-600 hover:text-black">
+           
+            <Button variant="outline" size="sm" className="border-gray-300 text-yellow-500  hover:bg-gray-100 hover:text-black" onClick={handleExportPDF}>
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold">
+              <Button size="sm" className="bg-gray-100 hover:bg-gray-200 text-black font-semibold">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Employee
               </Button>
@@ -237,7 +258,7 @@ export default function EmployeesPage() {
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleAddEmployee} className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold">
+                <Button onClick={handleAddEmployee} className="bg-gray-100 hover:bg-gray-200 text-black font-semibold">
                   Add Employee
                 </Button>
               </DialogFooter>
@@ -247,17 +268,17 @@ export default function EmployeesPage() {
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className="relative flex-1 bg-white  border-yellow-300 rounded-md">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-yellow-500" />
           <Input
             type="search"
             placeholder="Search employees..."
-            className="pl-8"
+            className="pl-8 bg-gray-900 text-white placeholder-yellow-500 border-none shadow-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button variant="outline" size="sm" onClick={loadData} disabled={isLoading}>
+        <Button variant="outline" size="sm" onClick={loadData} disabled={isLoading} className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold border-yellow-300">
           Refresh
         </Button>
       </div>
@@ -265,7 +286,7 @@ export default function EmployeesPage() {
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
           <strong className="font-bold">Error: </strong>
-          <span className="block sm:inline">{error}</span>
+          <span className="block sm:inline">{warning}</span>
           <button className="absolute top-0 bottom-0 right-0 px-4 py-3" onClick={() => setError(null)}>
             <span className="sr-only">Dismiss</span>
             <span className="text-xl">×</span>
@@ -275,12 +296,12 @@ export default function EmployeesPage() {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
         </div>
       ) : (
         <div className="rounded-md border shadow-sm">
           <Table>
-            <TableHeader className="bg-gray-900 text-yellow-500">
+            <TableHeader className="bg-gray-100 text-gray-800">
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
@@ -292,17 +313,17 @@ export default function EmployeesPage() {
             <TableBody>
               {filteredEmployees.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                     {searchTerm ? "No employees match your search criteria." : "No employees found. Add some employees to get started."}
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredEmployees.map((employee) => (
-                  <TableRow key={employee.id} className="hover:bg-yellow-600/10 text-yellow-500">
-                    <TableCell className="font-medium text-yellow-500">{`${employee.firstName || (employee as any)["Firstnam"] || ''} ${employee.lastName || (employee as any)["Lastname"] || ''}`}</TableCell>
-                    <TableCell>{employee.email}</TableCell>
-                    <TableCell>{employee.phone}</TableCell>
-                    <TableCell>{employee.department.name}</TableCell>
+                  <TableRow key={employee.id} className="hover:bg-gray-100 text-gray-800">
+                    <TableCell className="font-medium text-gray-900">{`${employee.firstName || (employee as any)["Firstnam"] || ''} ${employee.lastName || (employee as any)["Lastname"] || ''}`}</TableCell>
+                    <TableCell className="text-gray-800">{employee.email}</TableCell>
+                    <TableCell className="text-gray-800">{employee.phone}</TableCell>
+                    <TableCell className="text-gray-800">{employee.department.name}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -423,7 +444,7 @@ export default function EmployeesPage() {
                                 <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                                   Cancel
                                 </Button>
-                                <Button onClick={handleEditEmployee} className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold">
+                                <Button onClick={handleEditEmployee} className="bg-gray-100 hover:bg-gray-200 text-black font-semibold">
                                   Save Changes
                                 </Button>
                               </DialogFooter>

@@ -6,6 +6,7 @@ export interface Department {
   description?: string;
   employeeCount: number;
   createdDate?: string;
+  employees?: Employee[];
 }
 
 export interface Employee {
@@ -29,7 +30,7 @@ export interface LeaveRequest {
   employee: Employee;
   startDate: string;
   endDate: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
   reason: string;
 }
 

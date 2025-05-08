@@ -1,37 +1,6 @@
 import { NextResponse } from 'next/server'
 import { Employee, Department } from '@/types/employee'
-
-// In a real application, this would be replaced with a database
-let employees: Employee[] = [
-  {
-    id: 1,
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phone: "1234567890",
-    department: {
-      id: 1,
-      name: "Engineering",
-      manager: "Mike Johnson",
-      employeeCount: 5,
-      createdDate: new Date().toISOString().split('T')[0]
-    }
-  },
-  {
-    id: 2,
-    firstName: "Jane",
-    lastName: "Smith",
-    email: "jane.smith@example.com",
-    phone: "0987654321",
-    department: {
-      id: 2,
-      name: "Human Resources",
-      manager: "Sarah Wilson",
-      employeeCount: 3,
-      createdDate: new Date().toISOString().split('T')[0]
-    }
-  }
-]
+import { employees, departments } from '../../data'
 
 export async function GET(
   request: Request,
@@ -59,6 +28,21 @@ export async function PUT(
     return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
   }
   
+  // If department is being changed, update employee counts
+  if (updatedEmployee.department && updatedEmployee.department.id !== employees[index].department.id) {
+    // Decrement old department's count
+    const oldDepartment = departments.find(d => d.id === employees[index].department.id)
+    if (oldDepartment) {
+      oldDepartment.employeeCount = Math.max(0, (oldDepartment.employeeCount || 0) - 1)
+    }
+    
+    // Increment new department's count
+    const newDepartment = departments.find(d => d.id === updatedEmployee.department?.id)
+    if (newDepartment) {
+      newDepartment.employeeCount = (newDepartment.employeeCount || 0) + 1
+    }
+  }
+  
   employees[index] = { ...employees[index], ...updatedEmployee }
   return NextResponse.json(employees[index])
 }
@@ -72,6 +56,13 @@ export async function DELETE(
   
   if (index === -1) {
     return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
+  }
+  
+  // Decrement the department's employee count
+  const employee = employees[index]
+  const department = departments.find(d => d.id === employee.department.id)
+  if (department) {
+    department.employeeCount = Math.max(0, (department.employeeCount || 0) - 1)
   }
   
   employees.splice(index, 1)

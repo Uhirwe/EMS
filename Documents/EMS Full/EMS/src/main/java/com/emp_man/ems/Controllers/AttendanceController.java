@@ -1,5 +1,6 @@
 package com.emp_man.ems.Controllers;
 
+
 import com.emp_man.ems.Models.Attendance;
 import com.emp_man.ems.Service.AttendanceService;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +19,8 @@ public class AttendanceController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Attendance>> getAllAttendances() {
-        List<Attendance> attendances = attendanceService.getAllAttendances();
-        return ResponseEntity.ok(attendances);
+    public List<Attendance> getAllAttendances() {
+        return attendanceService.getAllAttendances();
     }
 
     @GetMapping("/{id}")
@@ -30,9 +30,8 @@ public class AttendanceController {
     }
 
     @PostMapping
-    public ResponseEntity<Attendance> createAttendance(@RequestBody Attendance attendance) {
-        Attendance createdAttendance = attendanceService.createAttendance(attendance);
-        return ResponseEntity.ok(createdAttendance);
+    public Attendance createAttendance(@RequestBody Attendance attendance) {
+        return attendanceService.createAttendance(attendance);
     }
 
     @PutMapping("/{id}")

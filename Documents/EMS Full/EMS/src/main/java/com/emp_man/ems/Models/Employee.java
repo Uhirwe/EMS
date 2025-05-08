@@ -1,6 +1,5 @@
 package com.emp_man.ems.Models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
@@ -10,18 +9,10 @@ public class Employee {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonProperty("firstName")
     private String firstName;
-
-    @JsonProperty("lastName")
     private String lastName;
-
     private String email;
     private String phone;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
 
     @ManyToOne
     @JoinColumn(name = "department_id")
@@ -74,13 +65,5 @@ public class Employee {
 
     public void setDepartment(Department department) {
         this.department = department;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 }

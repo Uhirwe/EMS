@@ -170,15 +170,15 @@ export default function AttendancePage() {
               <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
             </PopoverContent>
           </Popover>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="border-white text-white hover:bg-white hover:text-black">
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm">
+              <Button size="sm" className="bg-white hover:bg-white/90 text-black font-semibold">
                 <Plus className="mr-2 h-4 w-4" />
-                Add Record
+                New Record
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -289,16 +289,18 @@ export default function AttendancePage() {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
         </div>
       ) : (
         <div className="rounded-md border">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-gray-100 text-gray-800">
               <TableRow>
                 <TableHead>Employee</TableHead>
                 <TableHead>Department</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>Check In</TableHead>
+                <TableHead>Check Out</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -306,18 +308,18 @@ export default function AttendancePage() {
             <TableBody>
               {filteredAttendances.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    {searchTerm ? "No attendances match your search criteria." : "No attendances found. Add some attendances to get started."}
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                    {searchTerm ? "No attendance records match your search criteria." : "No attendance records found. Add some records to get started."}
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredAttendances.map((attendance) => (
-                  <TableRow key={attendance.id}>
-                    <TableCell className="font-medium">
-                      {attendance.employee.firstName} {attendance.employee.lastName}
-                    </TableCell>
-                    <TableCell>{attendance.employee.department.name}</TableCell>
-                    <TableCell>{new Date(attendance.date).toLocaleDateString()}</TableCell>
+                  <TableRow key={attendance.id} className="hover:bg-gray-100 text-gray-800">
+                    <TableCell className="font-medium text-gray-900">{attendance.employee.firstName} {attendance.employee.lastName}</TableCell>
+                    <TableCell className="text-gray-800">{attendance.employee.department.name}</TableCell>
+                    <TableCell className="text-gray-800">{new Date(attendance.date).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-gray-800">{attendance.checkIn}</TableCell>
+                    <TableCell className="text-gray-800">{attendance.checkOut}</TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -325,9 +327,7 @@ export default function AttendancePage() {
                             ? "bg-green-100 text-green-800"
                             : attendance.status === "ABSENT"
                               ? "bg-red-100 text-red-800"
-                              : attendance.status === "LATE"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-blue-100 text-blue-800"
+                              : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
                         {attendance.status}
@@ -420,7 +420,9 @@ export default function AttendancePage() {
                                 <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                                   Cancel
                                 </Button>
-                                <Button onClick={handleEditAttendance}>Save Changes</Button>
+                                <Button onClick={handleEditAttendance} className="bg-white hover:bg-white/90 text-black font-semibold">
+                                  Save Changes
+                                </Button>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>

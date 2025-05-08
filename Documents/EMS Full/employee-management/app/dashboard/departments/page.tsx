@@ -48,6 +48,7 @@ export default function DepartmentsPage() {
     setError(null);
     try {
       const data = await departmentApi.getAllDepartments();
+      console.log("this is the department data: ", data);
       setDepartments(data);
     } catch (error: any) {
       console.error("Failed to load departments:", error);
@@ -147,15 +148,17 @@ export default function DepartmentsPage() {
 
   const handleDeleteDepartment = async () => {
     if (!selectedDepartment) return;
-
+    
     try {
       await departmentApi.deleteDepartment(selectedDepartment.id);
       await loadDepartments();
       setIsDeleteDialogOpen(false);
       setSelectedDepartment(null);
-    } catch (error: any) {
-      console.error("Failed to delete department:", error);
-      setError(error.message || "Failed to delete department. Please try again later.");
+      setError(null);
+    } catch (error) {
+      console.error('Failed to delete department:', error);
+      setError(error instanceof Error ? error.message : 'Failed to delete department');
+      setIsDeleteDialogOpen(true);
     }
   };
 
@@ -170,18 +173,15 @@ export default function DepartmentsPage() {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm">
               <Upload className="mr-2 h-4 w-4" />
-              Import
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
+           
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm">
+              <Button size="sm" className="bg-gray-100 hover:bg-gray-200 text-black font-semibold">
                 <Plus className="mr-2 h-4 w-4" />
-                Add Department
+                New Department
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -268,36 +268,32 @@ export default function DepartmentsPage() {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
         </div>
       ) : (
         <div className="rounded-md border">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-gray-100 text-gray-800">
               <TableRow>
-                <TableHead>Department Name</TableHead>
-                <TableHead>Manager</TableHead>
-                <TableHead>Employees</TableHead>
+                <TableHead>Name</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Created Date</TableHead>
+                <TableHead>Employees</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredDepartments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">
                     {searchTerm ? "No departments match your search criteria." : "No departments found. Add some departments to get started."}
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredDepartments.map((department) => (
-                  <TableRow key={department.id}>
-                    <TableCell className="font-medium">{department.name}</TableCell>
-                    <TableCell>{department.manager || "N/A"}</TableCell>
-                    <TableCell>{department.employeeCount}</TableCell>
-                    <TableCell className="max-w-xs truncate">{department.description || "N/A"}</TableCell>
-                    <TableCell>{department.createdDate ? new Date(department.createdDate).toLocaleDateString() : "N/A"}</TableCell>
+                  <TableRow key={department.id} className="hover:bg-gray-100 text-gray-800">
+                    <TableCell className="font-medium text-gray-900">{department.name}</TableCell>
+                    <TableCell className="text-gray-800">{department.description}</TableCell>
+                    <TableCell className="text-gray-800">{department.employeeCount}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -362,7 +358,9 @@ export default function DepartmentsPage() {
                                 <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                                   Cancel
                                 </Button>
-                                <Button onClick={handleEditDepartment}>Save Changes</Button>
+                                <Button onClick={handleEditDepartment} className="bg-gray-100 hover:bg-gray-200 text-black font-semibold">
+                                  Save Changes
+                                </Button>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>

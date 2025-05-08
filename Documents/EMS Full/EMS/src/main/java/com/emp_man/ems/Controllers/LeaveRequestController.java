@@ -1,5 +1,6 @@
 package com.emp_man.ems.Controllers;
 
+
 import com.emp_man.ems.Models.LeaveRequest;
 import com.emp_man.ems.Service.LeaveRequestService;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +19,8 @@ public class LeaveRequestController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LeaveRequest>> getAllLeaveRequests() {
-        List<LeaveRequest> leaveRequests = leaveRequestService.getAllLeaveRequests();
-        return ResponseEntity.ok(leaveRequests);
+    public List<LeaveRequest> getAllLeaveRequests() {
+        return leaveRequestService.getAllLeaveRequests();
     }
 
     @GetMapping("/{id}")
@@ -30,9 +30,8 @@ public class LeaveRequestController {
     }
 
     @PostMapping
-    public ResponseEntity<LeaveRequest> createLeaveRequest(@RequestBody LeaveRequest leaveRequest) {
-        LeaveRequest createdLeaveRequest = leaveRequestService.createLeaveRequest(leaveRequest);
-        return ResponseEntity.ok(createdLeaveRequest);
+    public LeaveRequest createLeaveRequest(@RequestBody LeaveRequest leaveRequest) {
+        return leaveRequestService.createLeaveRequest(leaveRequest);
     }
 
     @PutMapping("/{id}")
@@ -44,6 +43,6 @@ public class LeaveRequestController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteLeaveRequest(@PathVariable Long id) {
         leaveRequestService.deleteLeaveRequest(id);
-        return ResponseEntity.ok("Leave request deleted successfully");
+        return ResponseEntity.ok("LeaveRequest deleted successfully");
     }
 }

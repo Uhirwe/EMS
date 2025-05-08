@@ -18,9 +18,8 @@ public class DepartmentController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Department>> getAllDepartments() {
-        List<Department> departments = departmentService.getAllDepartments();
-        return ResponseEntity.ok(departments);
+    public List<Department> getAllDepartments() {
+        return departmentService.getAllDepartments();
     }
 
     @GetMapping("/{id}")
@@ -30,48 +29,19 @@ public class DepartmentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createDepartment(@RequestBody Department department) {
-        try {
-            if (department.getName() == null || department.getName().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Department name is required");
-            }
-            if (department.getManager() == null || department.getManager().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Department manager is required");
-            }
-            Department createdDepartment = departmentService.createDepartment(department);
-            return ResponseEntity.ok(createdDepartment);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error creating department: " + e.getMessage());
-        }
+    public Department createDepartment(@RequestBody Department department) {
+        return departmentService.createDepartment(department);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateDepartment(@PathVariable Long id, @RequestBody Department departmentDetails) {
-        try {
-            if (departmentDetails.getName() == null || departmentDetails.getName().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Department name is required");
-            }
-            if (departmentDetails.getManager() == null || departmentDetails.getManager().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Department manager is required");
-            }
-            Department updatedDepartment = departmentService.updateDepartment(id, departmentDetails);
-            return ResponseEntity.ok(updatedDepartment);
-        } catch (IllegalAccessError e) {
-            return ResponseEntity.status(403).body("Unauthorized access to department record");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error updating department: " + e.getMessage());
-        }
+    public ResponseEntity<Department> updateDepartment(@PathVariable Long id, @RequestBody Department departmentDetails) {
+        Department updatedDepartment = departmentService.updateDepartment(id, departmentDetails);
+        return ResponseEntity.ok(updatedDepartment);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteDepartment(@PathVariable Long id) {
-        try {
-            departmentService.deleteDepartment(id);
-            return ResponseEntity.ok("Department deleted successfully");
-        } catch (IllegalAccessError e) {
-            return ResponseEntity.status(403).body("Unauthorized access to department record");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error deleting department: " + e.getMessage());
-        }
+        departmentService.deleteDepartment(id);
+        return ResponseEntity.ok("Department deleted successfully");
     }
 }

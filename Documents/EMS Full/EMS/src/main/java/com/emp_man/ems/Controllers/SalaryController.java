@@ -18,9 +18,8 @@ public class SalaryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Salary>> getAllSalaries() {
-        List<Salary> salaries = salaryService.getAllSalaries();
-        return ResponseEntity.ok(salaries);
+    public List<Salary> getAllSalaries() {
+        return salaryService.getAllSalaries();
     }
 
     @GetMapping("/{id}")
@@ -30,9 +29,8 @@ public class SalaryController {
     }
 
     @PostMapping
-    public ResponseEntity<Salary> createSalary(@RequestBody Salary salary) {
-        Salary createdSalary = salaryService.createSalary(salary);
-        return ResponseEntity.ok(createdSalary);
+    public Salary createSalary(@RequestBody Salary salary) {
+        return salaryService.createSalary(salary);
     }
 
     @PutMapping("/{id}")

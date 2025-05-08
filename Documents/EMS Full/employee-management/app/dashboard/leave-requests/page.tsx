@@ -202,13 +202,13 @@ export default function LeaveRequestsPage() {
           <p className="text-muted-foreground">Manage employee leave requests</p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="border-white text-white hover:bg-white hover:text-black">
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm">
+              <Button size="sm" className="bg-white hover:bg-white/90 text-black font-semibold">
                 <Plus className="mr-2 h-4 w-4" />
                 New Request
               </Button>
@@ -339,12 +339,12 @@ export default function LeaveRequestsPage() {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
         </div>
       ) : (
         <div className="rounded-md border">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-gray-900 text-white">
               <TableRow>
                 <TableHead>Employee</TableHead>
                 <TableHead>Department</TableHead>
@@ -357,21 +357,19 @@ export default function LeaveRequestsPage() {
             <TableBody>
               {filteredRequests.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8 text-white">
                     {searchTerm ? "No leave requests match your search criteria." : "No leave requests found. Add some requests to get started."}
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredRequests.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell className="font-medium">
-                      {request.employee.firstName} {request.employee.lastName}
-                    </TableCell>
-                    <TableCell>{request.employee.department.name}</TableCell>
-                    <TableCell>
+                  <TableRow key={request.id} className="hover:bg-gray-800 text-white">
+                    <TableCell className="font-medium text-white">{request.employee.firstName} {request.employee.lastName}</TableCell>
+                    <TableCell className="text-white">{request.employee.department.name}</TableCell>
+                    <TableCell className="text-white">
                       {new Date(request.startDate).toLocaleDateString()} - {new Date(request.endDate).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>{request.reason}</TableCell>
+                    <TableCell className="text-white">{request.reason}</TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -495,7 +493,9 @@ export default function LeaveRequestsPage() {
                                 <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                                   Cancel
                                 </Button>
-                                <Button onClick={handleEditRequest}>Save Changes</Button>
+                                <Button onClick={handleEditRequest} className="bg-white hover:bg-white/90 text-black font-semibold">
+                                  Save Changes
+                                </Button>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>

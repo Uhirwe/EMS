@@ -21,9 +21,9 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { format } from "date-fns"
 import { salaryApi, employeeApi } from "@/lib/api/employee"
-import { Salary, Employee } from "@/types/employee"
+import { Salary, Employee, Department } from "@/types/employee"
+import { format } from "date-fns"
 
 export default function SalaryPage() {
   const router = useRouter()
@@ -193,15 +193,15 @@ export default function SalaryPage() {
               <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
             </PopoverContent>
           </Popover>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="border-white text-white hover:bg-white hover:text-black">
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm">
+              <Button size="sm" className="bg-white hover:bg-white/90 text-black font-semibold">
                 <Plus className="mr-2 h-4 w-4" />
-                Add Salary
+                New Salary
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -340,12 +340,12 @@ export default function SalaryPage() {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
         </div>
       ) : (
         <div className="rounded-md border">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-gray-100 text-gray-800">
               <TableRow>
                 <TableHead>Employee</TableHead>
                 <TableHead>Department</TableHead>
@@ -361,22 +361,20 @@ export default function SalaryPage() {
             <TableBody>
               {filteredRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                     {searchTerm ? "No salary records match your search criteria." : "No salary records found. Add some records to get started."}
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredRecords.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell className="font-medium">
-                      {record.employee.firstName} {record.employee.lastName}
-                    </TableCell>
-                    <TableCell>{record.department.name}</TableCell>
-                    <TableCell>${record.basicSalary.toLocaleString()}</TableCell>
-                    <TableCell>${record.allowances.toLocaleString()}</TableCell>
-                    <TableCell>${record.deductions.toLocaleString()}</TableCell>
-                    <TableCell>${record.netSalary.toLocaleString()}</TableCell>
-                    <TableCell>{new Date(record.paymentDate).toLocaleDateString()}</TableCell>
+                  <TableRow key={record.id} className="hover:bg-gray-100 text-gray-800">
+                    <TableCell className="font-medium text-gray-900">{record.employee.firstName} {record.employee.lastName}</TableCell>
+                    <TableCell className="text-gray-800">{record.department.name}</TableCell>
+                    <TableCell className="text-gray-800">${record.basicSalary.toLocaleString()}</TableCell>
+                    <TableCell className="text-gray-800">${record.allowances.toLocaleString()}</TableCell>
+                    <TableCell className="text-gray-800">${record.deductions.toLocaleString()}</TableCell>
+                    <TableCell className="text-gray-800">${record.netSalary.toLocaleString()}</TableCell>
+                    <TableCell className="text-gray-800">{new Date(record.paymentDate).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
